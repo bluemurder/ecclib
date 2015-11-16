@@ -23,15 +23,19 @@
 
 int main()
 {
-	PrimeFieldElement * n = NewElement("ccccccfccccccccc", 37);
-	n->m_data[0];
-	n->m_data[1];
-	n->m_data[2];
-	n->m_data[3];
-	n->m_data[4];
+	PrimeFieldElement * mod = NewElement("10e", 9);
+	mod->m_data[0];
+	mod->m_data[1];
 
-	PrimeFieldElement * m = NewElement("ffffffff", 13);
-	m->m_data[0];
-	m->m_data[1];
+	PrimeFieldElement * a = NewElement("ff", 8);
+	a->m_data[0];
+
+	PrimeFieldElement * b = NewElement("ff", 8);
+	b->m_data[0];
+
+	PrimeFieldElement * sum = AddMod(a,b,mod);
+	sum->m_data[0];
+	sum->m_data[1];
+
 	wprintf(L"Hello");
 }

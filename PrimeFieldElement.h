@@ -1,4 +1,4 @@
-/************************************************************************\
+/***********************************************************************\
 * Prime Field Arithmetic primitives                                     *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
@@ -27,6 +27,8 @@ struct _primeFieldElement
 	chunk_t * m_data;
 	// Size of chunks for present element
 	size_t m_ChunksNumber;
+	// Bits number
+	unsigned int m_fieldBits;
 };
 
 typedef struct _primeFieldElement PrimeFieldElement;

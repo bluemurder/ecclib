@@ -1,20 +1,20 @@
-/************************************************************************\
- * Prime Field Arithmetic primitives                                     *
- * Copyright (C) 2015  Alessio Leoncini                                  *
- *                                                                       *
- * This program is free software: you can redistribute it and/or modify  *
- * it under the terms of the GNU General Public License as published by  *
- * the Free Software Foundation, either version 3 of the License, or     *
- * (at your option) any later version.                                   *
- *                                                                       *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- *                                                                       *
- * You should have received a copy of the GNU General Public License     *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
- \***********************************************************************/
+/***********************************************************************\
+* Prime Field Arithmetic primitives                                     *
+* Copyright (C) 2015  Alessio Leoncini                                  *
+*                                                                       *
+* This program is free software: you can redistribute it and/or modify  *
+* it under the terms of the GNU General Public License as published by  *
+* the Free Software Foundation, either version 3 of the License, or     *
+* (at your option) any later version.                                   *
+*                                                                       *
+* This program is distributed in the hope that it will be useful,       *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+* GNU General Public License for more details.                          *
+*                                                                       *
+* You should have received a copy of the GNU General Public License     *
+* along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+\***********************************************************************/
 
 #include "CPrimeFieldArithmeticInt.h"
 #include <malloc.h>
@@ -27,7 +27,7 @@ PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 {
 	size_t hexStringLen = strlen(hexString);
 	PrimeFieldElement * element = (PrimeFieldElement *)malloc(sizeof(PrimeFieldElement));
-
+	element->m_fieldBits = fieldBitSize;
 	element->m_ChunksNumber = fieldBitSize / ARCHITECTURE_BITS;
 	if (fieldBitSize % ARCHITECTURE_BITS)
 	{
@@ -110,4 +110,59 @@ void FreeElement(PrimeFieldElement * element)
 		free(element->m_data);
 		element->m_data = NULL;
 	}
+}
+
+PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * mod)
+{
+	// Assuming that a, b amd c are not null pointers. Care of caller to ensure this
+	// Assuming that a and b present the SAME number of chunks. Care of caller to ensure this
+	// Allocate 
+	PrimeFieldElement * element = (PrimeFieldElement *)malloc(sizeof(PrimeFieldElement));
+	element->m_data = (chunk_t *)malloc(a->m_ChunksNumber * sizeof(chunk_t));
+	element->m_ChunksNumber = a->m_ChunksNumber;
+	element->m_fieldBits = a->m_fieldBits;
+	// Binary sum
+	chunk_t carry = 0;
+	chunk_t borrow = 0;
+	size_t i;
+	for (i = 0; i < a->m_ChunksNumber; i++)
+	{
+		if (carry)
+		{
+			element->m_data[i] = a->m_data[i] + b->m_data[i] + carry;
+			carry = (a->m_data[i] >= element->m_data[i]);
+		}
+		else
+		{
+			element->m_data[i] = a->m_data[i] + b->m_data[i];
+			carry = (a->m_data[i] > element->m_data[i]);
+		}
+	}
+	// If carry, modulo reduction
+	if (carry)
+	{
+		//borrow = carry;
+		size_t maxElementChunk = element->m_ChunksNumber - 1;
+		for (i = 0; i < element->m_ChunksNumber; i++)
+		{
+			//if (i > maxElementChunk)
+			//{
+			//	borrow = mod->m_data[i] - borrow;
+			//}
+			//else
+			//{
+				if (borrow)
+				{
+					element->m_data[i] = element->m_data[i] - mod->m_data[i] - borrow;
+					borrow = (element->m_data[i] <= mod->m_data[i]);
+				}
+				else
+				{
+					element->m_data[i] = element->m_data[i] - mod->m_data[i];
+					borrow = (element->m_data[i] < mod->m_data[i]);
+				}
+			//}
+		}
+	}
+	return element;
 }

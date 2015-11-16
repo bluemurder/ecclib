@@ -1,4 +1,4 @@
-/************************************************************************\
+/***********************************************************************\
 * Prime Field Arithmetic primitives                                     *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
@@ -22,10 +22,13 @@
 #include "PrimeFieldGlobals.h"
 #include "PrimeFieldElement.h"
 
-//Create new prime field element
+// Create new prime field element
 PrimeFieldElement * NewElement(char * hexString, unsigned int fieldBitSize);
 
-//Create new prime field element
+// Create new prime field element
 void FreeElement(PrimeFieldElement * element);
+
+// Modular addition of two elements, with specified modulus
+PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * mod);
 
 #endif // CPRIMEFIELFARITHMETICINT_H
