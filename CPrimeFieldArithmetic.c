@@ -60,24 +60,37 @@ PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 			{
 				value = *stringCursor - 97 + 10;
 			}
+			// If declared input bits does not coner entirely current chunk:
+			if (bitsCounter + 4 > fieldBitSize)
+			{
+				// Apply proper bitmask
+				size_t difference = bitsCounter + 4 - fieldBitSize;
+				if (difference == 3)
+				{
+					value = value & 0x1;
+				}
+				else if (difference == 2)
+				{
+					value = value & 0x3;
+				}
+				else if (difference == 1)
+				{
+					value = value & 0x7;
+				}
+				// exit
+				readstring = 0;
+			}
 			// Shift when reading higher chunk bits
 			value = value << (4 * j);
 			// Sum to current chunk integer
 			element->m_data[i] += value;
-			// If 
-			if (charactersCounter == hexStringLen-1)
+			// If input string with no more characters, exit
+			if (charactersCounter+1 == hexStringLen)
 			{
 				readstring = 0;
 			}
-			else if (bitsCounter > fieldBitSize)
-			{
-				readstring = 0;
-			}
-			else
-			{
 				// Read next string character
 				stringCursor--;
-			}
 		}
 	}
 	return element;

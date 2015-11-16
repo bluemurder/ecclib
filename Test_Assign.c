@@ -16,16 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#ifndef CPRIMEFIELFARITHMETICINT_H
-#define CPRIMEFIELFARITHMETICINT_H
+#include "CPrimeFieldArithmeticInt.h"
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-#include "PrimeFieldGlobals.h"
-#include "PrimeFieldElement.h"
+int main()
+{
+	PrimeFieldElement * n = NewElement("cccccccccccccccc", 34);
+	n->m_data[0];
+	n->m_data[1];
+	n->m_data[2];
+	n->m_data[3];
+	n->m_data[4];
 
-//Create new prime field element
-PrimeFieldElement * NewElement(char * hexString, unsigned int fieldBitSize);
-
-//Create new prime field element
-void FreeElement(PrimeFieldElement * element);
-
-#endif // CPRIMEFIELFARITHMETICINT_H
+	PrimeFieldElement * m = NewElement("ffffffff", 13);
+	m->m_data[0];
+	m->m_data[1];
+	wprintf(L"Hello");
+}
