@@ -20,7 +20,9 @@
 #include <malloc.h>
 #include <string.h>
 
-
+//! Create a new prime field element from an hexadecimal string and a field 
+//! size. Note that the field size overcomes the string if it is passed with 
+//! higher dimension than specified field size.
 PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 {
 	size_t hexStringLen = strlen(hexString);
@@ -43,7 +45,7 @@ PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 	for (i = 0; i < element->m_ChunksNumber; i++)
 	{
 		element->m_data[i] = 0;
-		for (j = 0; (j < maxChunkCharacters && readstring == 1); j++, charactersCounter++, bitsCounter+=4)
+		for (j = 0; (j < maxChunkCharacters && readstring == 1); j++, charactersCounter++, bitsCounter += 4)
 		{
 			// Numbers
 			if (*stringCursor > 47 && *stringCursor < 58)
@@ -65,7 +67,11 @@ PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 			{
 				// Apply proper bitmask
 				size_t difference = bitsCounter + 4 - fieldBitSize;
-				if (difference == 3)
+				if (difference == 4)
+				{
+					value = 0;
+				}
+				else if (difference == 3)
 				{
 					value = value & 0x1;
 				}
@@ -85,18 +91,23 @@ PrimeFieldElement * NewElement(char * hexString, size_t fieldBitSize)
 			// Sum to current chunk integer
 			element->m_data[i] += value;
 			// If input string with no more characters, exit
-			if (charactersCounter+1 == hexStringLen)
+			if (charactersCounter + 1 == hexStringLen)
 			{
 				readstring = 0;
 			}
-				// Read next string character
-				stringCursor--;
+			// Read next string character
+			stringCursor--;
 		}
 	}
 	return element;
 }
 
+//! Frees memory of specified element
 void FreeElement(PrimeFieldElement * element)
 {
-
+	if (element != NULL)
+	{
+		free(element->m_data);
+		element->m_data = NULL;
+	}
 }

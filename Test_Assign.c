@@ -23,7 +23,7 @@
 
 int main()
 {
-	PrimeFieldElement * n = NewElement("cccccccccccccccc", 34);
+	PrimeFieldElement * n = NewElement("ccccccfccccccccc", 37);
 	n->m_data[0];
 	n->m_data[1];
 	n->m_data[2];
