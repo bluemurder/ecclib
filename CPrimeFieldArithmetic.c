@@ -112,7 +112,8 @@ void FreeElement(PrimeFieldElement * element)
 	}
 }
 
-PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * mod)
+//! Returns a + b (mod p)
+PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p)
 {
 	// Assuming that a, b amd c are not null pointers. Care of caller to ensure this
 	// Assuming that a and b present the SAME number of chunks. Care of caller to ensure this
@@ -141,27 +142,65 @@ PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFi
 	// If carry, modulo reduction
 	if (carry)
 	{
-		//borrow = carry;
-		size_t maxElementChunk = element->m_ChunksNumber - 1;
 		for (i = 0; i < element->m_ChunksNumber; i++)
 		{
-			//if (i > maxElementChunk)
-			//{
-			//	borrow = mod->m_data[i] - borrow;
-			//}
-			//else
-			//{
-				if (borrow)
-				{
-					element->m_data[i] = element->m_data[i] - mod->m_data[i] - borrow;
-					borrow = (element->m_data[i] <= mod->m_data[i]);
-				}
-				else
-				{
-					element->m_data[i] = element->m_data[i] - mod->m_data[i];
-					borrow = (element->m_data[i] < mod->m_data[i]);
-				}
-			//}
+			if (borrow)
+			{
+				element->m_data[i] = element->m_data[i] - p->m_data[i] - borrow;
+				borrow = (element->m_data[i] <= p->m_data[i]);
+			}
+			else
+			{
+				element->m_data[i] = element->m_data[i] - p->m_data[i];
+				borrow = (element->m_data[i] < p->m_data[i]);
+			}
+		}
+	}
+	return element;
+}
+
+//! Returns a - b (mod p)
+PrimeFieldElement * SubMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p)
+{
+	// Assuming that a, b amd c are not null pointers. Care of caller to ensure this
+	// Assuming that a and b present the SAME number of chunks. Care of caller to ensure this
+	// Allocate 
+	PrimeFieldElement * element = (PrimeFieldElement *)malloc(sizeof(PrimeFieldElement));
+	element->m_data = (chunk_t *)malloc(a->m_ChunksNumber * sizeof(chunk_t));
+	element->m_ChunksNumber = a->m_ChunksNumber;
+	element->m_fieldBits = a->m_fieldBits;
+	// Binary subtraction
+	chunk_t carry = 0;
+	chunk_t borrow = 0;
+	size_t i;
+	for (i = 0; i < a->m_ChunksNumber; i++)
+	{
+		if (borrow)
+		{
+			element->m_data[i] = a->m_data[i] - b->m_data[i] - borrow;
+			borrow = (a->m_data[i] <= element->m_data[i]);
+		}
+		else
+		{
+			element->m_data[i] = a->m_data[i] - b->m_data[i];
+			borrow = (a->m_data[i] < element->m_data[i]);
+		}
+	}
+	// If borrow, modulo reduction
+	if (borrow)
+	{
+		for (i = 0; i < element->m_ChunksNumber; i++)
+		{
+			if (carry)
+			{
+				element->m_data[i] = element->m_data[i] + p->m_data[i] + carry;
+				carry = (element->m_data[i] <= p->m_data[i]);
+			}
+			else
+			{
+				element->m_data[i] = element->m_data[i] + p->m_data[i];
+				carry = (element->m_data[i] < p->m_data[i]);
+			}
 		}
 	}
 	return element;

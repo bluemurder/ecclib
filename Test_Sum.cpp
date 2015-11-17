@@ -37,5 +37,15 @@ int main()
 	sum->m_data[0];
 	sum->m_data[1];
 
+	PrimeFieldElement * c = NewElement("fe", 9);
+	c->m_data[0];
+
+	PrimeFieldElement * d = NewElement("ff", 9);
+	d->m_data[0];
+
+	PrimeFieldElement * sub = SubMod(c, d, mod);
+	sub->m_data[0];
+	sub->m_data[1];
+
 	wprintf(L"Hello");
 }

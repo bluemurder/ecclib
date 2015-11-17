@@ -29,6 +29,9 @@ PrimeFieldElement * NewElement(char * hexString, unsigned int fieldBitSize);
 void FreeElement(PrimeFieldElement * element);
 
 // Modular addition of two elements, with specified modulus
-PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * mod);
+PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
+
+// Modular subtraction of two elements, with specified modulus
+PrimeFieldElement * SubMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
 
 #endif // CPRIMEFIELFARITHMETICINT_H
