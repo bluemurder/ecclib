@@ -20,7 +20,6 @@
 #define CPRIMEFIELFARITHMETICINT_H
 
 #include "PrimeFieldGlobals.h"
-#include "PrimeFieldElement.h"
 
 //! Field element structure
 struct _element_t
@@ -40,9 +39,6 @@ struct _field_t
 
 typedef struct _field_t field_t;
 
-// Create new prime field element
-//PrimeFieldElement * NewElement(char * hexString, unsigned int bitSize, unsigned int fieldBitSize);
-
 unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field);
 
 void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
@@ -57,16 +53,6 @@ void Addition(element_t * sum, element_t * a, element_t * b, field_t * field);
 
 void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field);
 
-// Create new prime field element
-//void FreeElement(PrimeFieldElement * element);
-
-// Modular addition of two elements, with specified modulus
-//PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
-
-// Modular subtraction of two elements, with specified modulus
-//PrimeFieldElement * SubMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
-
-// Fast modulo reduction for p = 2^192 − 2^64 − 1
-//PrimeFieldElement * FastReductionFIPSp192(PrimeFieldElement * a, PrimeFieldElement * p);
+void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field);
 
 #endif // CPRIMEFIELFARITHMETICINT_H
