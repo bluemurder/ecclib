@@ -23,15 +23,20 @@
 
 int main()
 {
-	PrimeFieldElement * n = NewElement("ccccccfccccccccc", 37);
-	n->m_data[0];
-	n->m_data[1];
-	n->m_data[2];
-	n->m_data[3];
-	n->m_data[4];
+	wprintf(L"CPrimeFieldArithmetic Assignment test");
 
-	PrimeFieldElement * m = NewElement("ffffffff", 13);
-	m->m_data[0];
-	m->m_data[1];
-	wprintf(L"Hello");
+	field_t field;
+	SetField(&field, 45, "1fffffffffff");
+	element_t n;
+	SetElement(&n, "009000000000000000000000012", &field);
+	n.data[0];
+	n.data[1];
+	n.data[2];
+	n.data[3];
+	n.data[4];
+	n.data[5];
+	n.data[6];
+	n.data[7];
+
+	return 0;
 }

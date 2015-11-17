@@ -23,29 +23,73 @@
 
 int main()
 {
-	PrimeFieldElement * mod = NewElement("10e", 9);
-	mod->m_data[0];
-	mod->m_data[1];
+	wprintf(L"CPrimeFieldArithmetic Assignment test");
 
-	PrimeFieldElement * a = NewElement("ff", 8);
-	a->m_data[0];
+	field_t field;
+	SetField(&field, 45, "1fffffffffff");
+	element_t a;
+	SetElement(&a, "0090000000000000000000001", &field);
+	element_t b;
+	SetElement(&b, "1ffffffffffe", &field);
+	element_t c;
+	SetElement(&c, "0", &field);
+	Addition(&c, &a, &b, &field);
 
-	PrimeFieldElement * b = NewElement("ff", 8);
-	b->m_data[0];
+	b.data[0];
+	b.data[1];
+	b.data[2];
+	b.data[3];
+	b.data[4];
+	b.data[5];
 
-	PrimeFieldElement * sum = AddMod(a,b,mod);
-	sum->m_data[0];
-	sum->m_data[1];
+	c.data[0];
+	c.data[1];
+	c.data[2];
+	c.data[3];
+	c.data[4];
+	c.data[5];
+	c.data[6];
+	c.data[7];
 
-	PrimeFieldElement * c = NewElement("fe", 9);
-	c->m_data[0];
+	element_t d;
+	SetElement(&d, "0", &field);
+	Subtraction(&d, &a, &b, &field);
 
-	PrimeFieldElement * d = NewElement("ff", 9);
-	d->m_data[0];
+	d.data[0];
+	d.data[1];
+	d.data[2];
+	d.data[3];
+	d.data[4];
+	d.data[5];
+	d.data[6];
+	d.data[7];
 
-	PrimeFieldElement * sub = SubMod(c, d, mod);
-	sub->m_data[0];
-	sub->m_data[1];
 
-	wprintf(L"Hello");
+	//PrimeFieldElement * mod = NewElement("10e", 9);
+	//mod->m_data[0];
+	//mod->m_data[1];
+
+	//PrimeFieldElement * a = NewElement("ff", 8);
+	//a->m_data[0];
+
+	//PrimeFieldElement * b = NewElement("ff", 8);
+	//b->m_data[0];
+
+	//PrimeFieldElement * sum = AddMod(a,b,mod);
+	//sum->m_data[0];
+	//sum->m_data[1];
+
+	//PrimeFieldElement * c = NewElement("fe", 9);
+	//c->m_data[0];
+
+	//PrimeFieldElement * d = NewElement("ff", 9);
+	//d->m_data[0];
+
+	//PrimeFieldElement * sub = SubMod(c, d, mod);
+	//sub->m_data[0];
+	//sub->m_data[1];
+
+
+
+	return 0;
 }

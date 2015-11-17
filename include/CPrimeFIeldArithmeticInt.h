@@ -1,4 +1,4 @@
-/***********************************************************************\
+﻿/***********************************************************************\
 * CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
@@ -22,16 +22,51 @@
 #include "PrimeFieldGlobals.h"
 #include "PrimeFieldElement.h"
 
-// Create new prime field element
-PrimeFieldElement * NewElement(char * hexString, unsigned int fieldBitSize);
+//! Field element structure
+struct _element_t
+{
+	chunk_t * data; //!< The data array
+};
+
+typedef struct _element_t element_t;
+
+//! Field properties structure
+struct _field_t
+{
+	unsigned int bits;			//!< Field dimension in bits
+	unsigned int chunksNumber;	//!< Number of chunks of every field element
+	element_t characteristics;	//!< Field characteristics
+};
+
+typedef struct _field_t field_t;
 
 // Create new prime field element
-void FreeElement(PrimeFieldElement * element);
+//PrimeFieldElement * NewElement(char * hexString, unsigned int bitSize, unsigned int fieldBitSize);
+
+unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field);
+
+void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
+
+void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics);
+
+void SetElement(element_t * element, char * hexString, field_t * field);
+
+void FreeElement(element_t * element);
+
+void Addition(element_t * sum, element_t * a, element_t * b, field_t * field);
+
+void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field);
+
+// Create new prime field element
+//void FreeElement(PrimeFieldElement * element);
 
 // Modular addition of two elements, with specified modulus
-PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
+//PrimeFieldElement * AddMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
 
 // Modular subtraction of two elements, with specified modulus
-PrimeFieldElement * SubMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
+//PrimeFieldElement * SubMod(PrimeFieldElement * a, PrimeFieldElement * b, PrimeFieldElement * p);
+
+// Fast modulo reduction for p = 2^192 − 2^64 − 1
+//PrimeFieldElement * FastReductionFIPSp192(PrimeFieldElement * a, PrimeFieldElement * p);
 
 #endif // CPRIMEFIELFARITHMETICINT_H

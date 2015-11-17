@@ -28,6 +28,7 @@ struct _primeFieldElement
 	// Size of chunks for present element
 	size_t m_ChunksNumber;
 	// Bits number
+	unsigned int m_bits;
 	unsigned int m_fieldBits;
 };
 
