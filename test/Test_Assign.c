@@ -1,5 +1,5 @@
 /***********************************************************************\
-* Prime Field Arithmetic primitives                                     *
+* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -16,21 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#ifndef PRIMEFIELDELEMENT_H
-#define PRIMEFIELDELEMENT_H
+#include "../include/CPrimeFieldArithmeticInt.h"
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-#include "PrimeFieldGlobals.h"
-
-struct _primeFieldElement
+int main()
 {
-	// Stored number. m_data[0] is the least significant chunk.
-	chunk_t * m_data;
-	// Size of chunks for present element
-	size_t m_ChunksNumber;
-	// Bits number
-	unsigned int m_fieldBits;
-};
+	PrimeFieldElement * n = NewElement("ccccccfccccccccc", 37);
+	n->m_data[0];
+	n->m_data[1];
+	n->m_data[2];
+	n->m_data[3];
+	n->m_data[4];
 
-typedef struct _primeFieldElement PrimeFieldElement;
-
-#endif // PRIMEFIELD8BITELEMENT_H
+	PrimeFieldElement * m = NewElement("ffffffff", 13);
+	m->m_data[0];
+	m->m_data[1];
+	wprintf(L"Hello");
+}

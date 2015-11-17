@@ -1,5 +1,5 @@
 /***********************************************************************\
-* Prime Field Arithmetic primitives                                     *
+* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -16,7 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#include "CPrimeFieldArithmeticInt.h"
+#include "../include/CPrimeFieldArithmeticInt.h"
 #include <malloc.h>
 #include <string.h>
 

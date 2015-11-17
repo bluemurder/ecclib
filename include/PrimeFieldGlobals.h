@@ -1,5 +1,5 @@
 /***********************************************************************\
-* Prime Field Arithmetic primitives                                     *
+* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -16,22 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#include "CPrimeFieldArithmeticInt.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+#ifndef PRIMEFIELDGLOBALS_H
+#define PRIMEFIELDGLOBALS_H
 
-int main()
-{
-	PrimeFieldElement * n = NewElement("ccccccfccccccccc", 37);
-	n->m_data[0];
-	n->m_data[1];
-	n->m_data[2];
-	n->m_data[3];
-	n->m_data[4];
+#include <stdint.h>
 
-	PrimeFieldElement * m = NewElement("ffffffff", 13);
-	m->m_data[0];
-	m->m_data[1];
-	wprintf(L"Hello");
-}
+// Define here the target architecture bit number
+#define ARCHITECTURE_BITS 8
+
+#if ARCHITECTURE_BITS == 8
+typedef uint8_t chunk_t;
+#elif ARCHITECTURE_BITS == 16
+typedef uint16_t chunk_t;
+#elif ARCHITECTURE_BITS == 64
+typedef uint64_t chunk_t;
+#else
+typedef uint32_t chunk_t;
+#endif
+
+#endif // PRIMEFIELDGLOBALS_H
