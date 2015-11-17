@@ -28,7 +28,7 @@ int main()
 	field_t field;
 	SetField(&field, 45, "1fffffffffff");
 	element_t a;
-	SetElement(&a, "0090000000000000000000001", &field);
+	SetElement(&a, "009000000000000000000ff01", &field);
 	element_t b;
 	SetElement(&b, "1ffffffffffe", &field);
 	element_t c;
