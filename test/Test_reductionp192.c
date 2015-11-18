@@ -16,22 +16,39 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#ifndef PRIMEFIELDGLOBALS_H
-#define PRIMEFIELDGLOBALS_H
+#include "../include/CPrimeFieldArithmeticInt.h"
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-#include <stdint.h>
+int main()
+{
+	wprintf(L"CPrimeFieldArithmetic Assignment test");
 
-// Define here the target architecture bit number
-#define ARCHITECTURE_BITS 32
+	field_t field;
+	SetField(&field, 192, "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831");
+	element_t a;
+	unsigned int cnumber = 384 / ARCHITECTURE_BITS;
+	if (384 % ARCHITECTURE_BITS)
+	{
+		cnumber++;
+	}
+	a.data = (chunk_t *)malloc(cnumber * sizeof(chunk_t));
+	SetString("FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22845", cnumber, 384, a.data);
+	a.data[0];
+	a.data[1];
+	a.data[2];
+	a.data[10];
 
-#if ARCHITECTURE_BITS == 8
-typedef uint8_t chunk_t;
-#elif ARCHITECTURE_BITS == 16
-typedef uint16_t chunk_t;
-#elif ARCHITECTURE_BITS == 64
-typedef uint64_t chunk_t;
-#else
-typedef uint32_t chunk_t;
-#endif
+	element_t reducted;
+	SetElement(&reducted, "", &field);
+	FastReductionFIPSp192(&reducted, &a, &field);
 
-#endif // PRIMEFIELDGLOBALS_H
+	reducted.data[0];
+	reducted.data[1];
+	reducted.data[2];
+	reducted.data[3];
+	reducted.data[4];
+	reducted.data[5];
+	return 0;
+}

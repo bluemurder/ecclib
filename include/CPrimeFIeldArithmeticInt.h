@@ -41,6 +41,8 @@ typedef struct _field_t field_t;
 
 unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field);
 
+unsigned int Equals(element_t * a, element_t * b, field_t * field);
+
 void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
 
 void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics);

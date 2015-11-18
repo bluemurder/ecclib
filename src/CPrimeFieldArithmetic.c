@@ -145,7 +145,7 @@ void FreeElement(element_t * element)
 }
 
 //! Checks if a is greater or equal than b
-//! \returns 1 if a is greater or equal to b
+//! \returns 1 if a is greater than or equal to b, 0 otherwise
 unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field)
 {
 	unsigned int i;
@@ -164,6 +164,21 @@ unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field)
 			return 1;
 		}
 	}
+}
+
+//! Checks if a is equal to b
+//! \returns 1 if a is equal to b, 0 otherwise
+unsigned int Equals(element_t * a, element_t * b, field_t * field)
+{
+	unsigned int i;
+	for (i = 0; i< field->chunksNumber; i++)
+	{
+		if (a->data[i] != b->data[i])
+		{
+			return 0;
+		}
+	}
+	return 1;
 }
 
 //! Addition of a and b over a prime field. Let p the field characteristics, 
@@ -260,10 +275,223 @@ void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
 void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 {
 #if ARCHITECTURE_BITS == 8
-	
+
+	// Note that a presents 48 chunks
+
+	element_t s1, s2, s3, s4, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[24]; // 8 * 24 = 192
+	s1.data = s1data;
+	chunk_t s2data[24];
+	s2.data = s2data;
+	chunk_t s3data[24];
+	s3.data = s3data;
+	chunk_t s4data[24];
+	s4.data = s4data;
+
+	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
+	// s1 = (a2, a1, a0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	s1.data[8] = a->data[8];
+	s1.data[9] = a->data[9];
+	s1.data[10] = a->data[10];
+	s1.data[11] = a->data[11];
+	s1.data[12] = a->data[12];
+	s1.data[13] = a->data[13];
+	s1.data[14] = a->data[14];
+	s1.data[15] = a->data[15];
+	s1.data[16] = a->data[16];
+	s1.data[17] = a->data[17];
+	s1.data[18] = a->data[18];
+	s1.data[19] = a->data[19];
+	s1.data[20] = a->data[20];
+	s1.data[21] = a->data[21];
+	s1.data[22] = a->data[22];
+	s1.data[23] = a->data[23];
+	// s2 = (0, a3, a3)
+	s2.data[0] = a->data[0];
+	s2.data[1] = a->data[0];
+	s2.data[2] = a->data[0];
+	s2.data[3] = a->data[0];
+	s2.data[4] = a->data[0];
+	s2.data[5] = a->data[0];
+	s2.data[6] = a->data[0];
+	s2.data[7] = a->data[0];
+	s2.data[8] = a->data[24];
+	s2.data[9] = a->data[25];
+	s2.data[10] = a->data[26];
+	s2.data[11] = a->data[27];
+	s2.data[12] = a->data[28];
+	s2.data[13] = a->data[29];
+	s2.data[14] = a->data[30];
+	s2.data[15] = a->data[31];
+	s2.data[16] = a->data[24];
+	s2.data[17] = a->data[25];
+	s2.data[18] = a->data[26];
+	s2.data[19] = a->data[27];
+	s2.data[20] = a->data[28];
+	s2.data[21] = a->data[29];
+	s2.data[22] = a->data[30];
+	s2.data[23] = a->data[31];
+	// s3 = (a4, a4, 0)
+	s3.data[0] = a->data[0];
+	s3.data[1] = a->data[0];
+	s3.data[2] = a->data[0];
+	s3.data[3] = a->data[0];
+	s3.data[4] = a->data[0];
+	s3.data[5] = a->data[0];
+	s3.data[6] = a->data[0];
+	s3.data[7] = a->data[0];
+	s3.data[8] = a->data[32];
+	s3.data[9] = a->data[33];
+	s3.data[10] = a->data[34];
+	s3.data[11] = a->data[35];
+	s3.data[12] = a->data[36];
+	s3.data[13] = a->data[37];
+	s3.data[14] = a->data[38];
+	s3.data[15] = a->data[39];
+	s3.data[16] = a->data[32];
+	s3.data[17] = a->data[33];
+	s3.data[18] = a->data[34];
+	s3.data[19] = a->data[35];
+	s3.data[20] = a->data[36];
+	s3.data[21] = a->data[37];
+	s3.data[22] = a->data[38];
+	s3.data[23] = a->data[39];
+	// s4 = (a5, a5, a5).
+	s4.data[0] = a->data[40];
+	s4.data[1] = a->data[41];
+	s4.data[2] = a->data[42];
+	s4.data[3] = a->data[43];
+	s4.data[4] = a->data[44];
+	s4.data[5] = a->data[45];
+	s4.data[6] = a->data[46];
+	s4.data[7] = a->data[47];
+	s4.data[8] = a->data[40];
+	s4.data[9] = a->data[41];
+	s4.data[10] = a->data[42];
+	s4.data[11] = a->data[43];
+	s4.data[12] = a->data[44];
+	s4.data[13] = a->data[45];
+	s4.data[14] = a->data[46];
+	s4.data[15] = a->data[47];
+	s4.data[16] = a->data[40];
+	s4.data[17] = a->data[41];
+	s4.data[18] = a->data[42];
+	s4.data[19] = a->data[43];
+	s4.data[20] = a->data[44];
+	s4.data[21] = a->data[45];
+	s4.data[22] = a->data[46];
+	s4.data[23] = a->data[47];
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// red = s1 + s2 + s3 + s4
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Addition(red, &partialres2, &s4, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
+
 #elif ARCHITECTURE_BITS == 16
-	
+
+	// Note that a presents 24 chunks
+
+	element_t s1, s2, s3, s4, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[12]; // 16 * 12 = 192
+	s1.data = s1data;
+	chunk_t s2data[12];
+	s2.data = s2data;
+	chunk_t s3data[12];
+	s3.data = s3data;
+	chunk_t s4data[12];
+	s4.data = s4data;
+
+	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
+	// s1 = (a2, a1, a0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	s1.data[8] = a->data[8];
+	s1.data[9] = a->data[9];
+	s1.data[10] = a->data[10];
+	s1.data[11] = a->data[11];
+	// s2 = (0, a3, a3)
+	s2.data[0] = a->data[12];
+	s2.data[1] = a->data[13];
+	s2.data[2] = a->data[14];
+	s2.data[3] = a->data[15];
+	s2.data[4] = a->data[12];
+	s2.data[5] = a->data[13];
+	s2.data[6] =a->data[14];
+	s2.data[7] = a->data[15];
+	s2.data[8] = 0;
+	s2.data[9] = 0;
+	s2.data[10] = 0;
+	s2.data[11] = 0;
+	// s3 = (a4, a4, 0)
+	s3.data[0] = a->data[0];
+	s3.data[1] = a->data[0];
+	s3.data[2] = a->data[0];
+	s3.data[3] = a->data[0];
+	s3.data[4] = a->data[16];
+	s3.data[5] = a->data[17];
+	s3.data[6] = a->data[18];
+	s3.data[7] = a->data[19];
+	s3.data[8] = a->data[16];
+	s3.data[9] = a->data[17];
+	s3.data[10] = a->data[18];
+	s3.data[11] = a->data[19];
+	// s4 = (a5, a5, a5).
+	s4.data[0] = a->data[20];
+	s4.data[1] = a->data[21];
+	s4.data[2] = a->data[22];
+	s4.data[3] = a->data[23];
+	s4.data[4] = a->data[20];
+	s4.data[5] = a->data[21];
+	s4.data[6] = a->data[22];
+	s4.data[7] = a->data[23];
+	s4.data[8] = a->data[20];
+	s4.data[9] = a->data[21];
+	s4.data[10] = a->data[22];
+	s4.data[11] = a->data[23];
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// red = s1 + s2 + s3 + s4
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Addition(red, &partialres2, &s4, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
+
 #elif ARCHITECTURE_BITS == 64
+
+	// Note that a presents 6 chunks
+
 	element_t s1, s2, s3, s4, partialres1, partialres2;
 
 	// Init partial results data
@@ -277,21 +505,19 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 	s4.data = s4data;
 
 	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
-	// s1 = (c2, c1, c0)
+	// s1 = (a2, a1, a0)
 	s1.data[0] = a->data[0];
 	s1.data[1] = a->data[1];
 	s1.data[2] = a->data[2];
-	// s2 = (0, c3, c3)
+	// s2 = (0, a3, a3)
 	s2.data[0] = a->data[3];
 	s2.data[1] = a->data[3];
 	s2.data[2] = 0;
-
-	// s3 = (c4, c4, 0)
+	// s3 = (a4, a4, 0)
 	s3.data[0] = 0;
 	s3.data[1] = a->data[4];
 	s3.data[2] = a->data[4];
-
-	// s4 = (c5, c5, c5).
+	// s4 = (a5, a5, a5).
 	s4.data[0] = a->data[5];
 	s4.data[1] = a->data[5];
 	s4.data[2] = a->data[5];
@@ -300,6 +526,7 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 	SetElement(&partialres1, "", field);
 	SetElement(&partialres2, "", field);
 
+	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
 	Addition(&partialres2, &partialres1, &s3, field);
 	Addition(red, &partialres2, &s4, field);
@@ -307,7 +534,65 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 	// Free partial results space
 	FreeElement(&partialres1);
 	FreeElement(&partialres2);
-#else
-	
+
+#else // Set chunks to 32 bit
+
+	// Note that a presents 12 chunks
+
+	element_t s1, s2, s3, s4, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[6]; // 32 * 6 = 192
+	s1.data = s1data;
+	chunk_t s2data[6];
+	s2.data = s2data;
+	chunk_t s3data[6];
+	s3.data = s3data;
+	chunk_t s4data[6];
+	s4.data = s4data;
+
+	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
+	// s1 = (a2, a1, a0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	// s2 = (0, a3, a3)
+	s2.data[0] = a->data[6];
+	s2.data[1] = a->data[7];
+	s2.data[2] = a->data[6];
+	s2.data[3] = a->data[7];
+	s2.data[4] = 0;
+	s2.data[5] = 0;
+	// s3 = (a4, a4, 0)
+	s3.data[0] = 0;
+	s3.data[1] = 0;
+	s3.data[2] = a->data[8];
+	s3.data[3] = a->data[9];
+	s3.data[4] = a->data[8];
+	s3.data[5] = a->data[9];
+	// s4 = (a5, a5, a5).
+	s4.data[0] = a->data[10];
+	s4.data[1] = a->data[11];
+	s4.data[2] = a->data[10];
+	s4.data[3] = a->data[11];
+	s4.data[4] = a->data[10];
+	s4.data[5] = a->data[11];
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// red = s1 + s2 + s3 + s4
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Addition(red, &partialres2, &s4, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
+
 #endif
 }
