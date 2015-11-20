@@ -706,7 +706,320 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 {
 #if ARCHITECTURE_BITS == 8
 
+	// Note that a presents 56 chunks
+
+	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[28]; // 8 * 28 = 224
+	s1.data = s1data;
+	chunk_t s2data[28];
+	s2.data = s2data;
+	chunk_t s3data[28];
+	s3.data = s3data;
+	chunk_t s4data[28];
+	s4.data = s4data;
+	chunk_t s5data[28];
+	s5.data = s5data;
+
+	// Assuming a = (a13,...,a0) (32-bit chunks)
+	// s1 = (a6, a5, a4, a3, a2, a1, a0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	s1.data[8] = a->data[8];
+	s1.data[9] = a->data[9];
+	s1.data[10] = a->data[10];
+	s1.data[11] = a->data[11];
+	s1.data[12] = a->data[12];
+	s1.data[13] = a->data[13];
+	s1.data[14] = a->data[14];
+	s1.data[15] = a->data[15];
+	s1.data[16] = a->data[16];
+	s1.data[17] = a->data[17];
+	s1.data[18] = a->data[18];
+	s1.data[19] = a->data[19];
+	s1.data[20] = a->data[20];
+	s1.data[21] = a->data[21];
+	s1.data[22] = a->data[22];
+	s1.data[23] = a->data[23];
+	s1.data[24] = a->data[24];
+	s1.data[25] = a->data[25];
+	s1.data[26] = a->data[26];
+	s1.data[27] = a->data[27];
+	// s2 = (a10, a9, a8, a7, 0, 0, 0)
+	s2.data[0] = 0;
+	s2.data[1] = 0;
+	s2.data[2] = 0;
+	s2.data[3] = 0;
+	s2.data[4] = 0;
+	s2.data[5] = 0;
+	s2.data[6] = 0;
+	s2.data[7] = 0;
+	s2.data[8] = 0;
+	s2.data[9] = 0;
+	s2.data[10] = 0;
+	s2.data[11] = 0;
+	s2.data[12] = a->data[28];
+	s2.data[13] = a->data[29];
+	s2.data[14] = a->data[30];
+	s2.data[15] = a->data[31];
+	s2.data[16] = a->data[32];
+	s2.data[17] = a->data[33];
+	s2.data[18] = a->data[34];
+	s2.data[19] = a->data[35];
+	s2.data[20] = a->data[36];
+	s2.data[21] = a->data[37];
+	s2.data[22] = a->data[38];
+	s2.data[23] = a->data[39];
+	s2.data[24] = a->data[40];
+	s2.data[25] = a->data[41];
+	s2.data[26] = a->data[42];
+	s2.data[27] = a->data[43];
+	// s3 = (0, a13, a12, a11, 0, 0, 0)
+	s3.data[0] = 0;
+	s3.data[1] = 0;
+	s3.data[2] = 0;
+	s3.data[3] = 0;
+	s3.data[4] = 0;
+	s3.data[5] = 0;
+	s3.data[6] = 0;
+	s3.data[7] = 0;
+	s3.data[8] = 0;
+	s3.data[9] = 0;
+	s3.data[10] = 0;
+	s3.data[11] = 0;
+	s3.data[12] = a->data[44];
+	s3.data[13] = a->data[45];
+	s3.data[14] = a->data[46];
+	s3.data[15] = a->data[47];
+	s3.data[16] = a->data[48];
+	s3.data[17] = a->data[49];
+	s3.data[18] = a->data[50];
+	s3.data[19] = a->data[51];
+	s3.data[20] = a->data[52];
+	s3.data[21] = a->data[53];
+	s3.data[22] = a->data[54];
+	s3.data[23] = a->data[55];
+	s3.data[24] = 0;
+	s3.data[25] = 0;
+	s3.data[26] = 0;
+	s3.data[27] = 0;
+	// s4 = (a13, a12, a11, a10, a9, a8, a7)
+	s4.data[0] = a->data[28];
+	s4.data[1] = a->data[29];
+	s4.data[2] = a->data[30];
+	s4.data[3] = a->data[31];
+	s4.data[4] = a->data[32];
+	s4.data[5] = a->data[33];
+	s4.data[6] = a->data[34];
+	s4.data[7] = a->data[35];
+	s4.data[8] = a->data[36];
+	s4.data[9] = a->data[37];
+	s4.data[10] = a->data[38];
+	s4.data[11] = a->data[39];
+	s4.data[12] = a->data[40];
+	s4.data[13] = a->data[41];
+	s4.data[14] = a->data[42];
+	s4.data[15] = a->data[43];
+	s4.data[16] = a->data[44];
+	s4.data[17] = a->data[45];
+	s4.data[18] = a->data[46];
+	s4.data[19] = a->data[47];
+	s4.data[20] = a->data[48];
+	s4.data[21] = a->data[49];
+	s4.data[22] = a->data[50];
+	s4.data[23] = a->data[51];
+	s4.data[24] = a->data[52];
+	s4.data[25] = a->data[53];
+	s4.data[26] = a->data[54];
+	s4.data[27] = a->data[55];
+	// s5 = (0, 0, 0, 0, a13, a12, a11)
+	s5.data[0] = a->data[44];
+	s5.data[1] = a->data[45];
+	s5.data[2] = a->data[46];
+	s5.data[3] = a->data[47];
+	s5.data[4] = a->data[48];
+	s5.data[5] = a->data[49];
+	s5.data[6] = a->data[50];
+	s5.data[7] = a->data[51];
+	s5.data[8] = a->data[52];
+	s5.data[9] = a->data[53];
+	s5.data[10] = a->data[54];
+	s5.data[11] = a->data[55];
+	s5.data[12] = 0;
+	s5.data[13] = 0;
+	s5.data[14] = 0;
+	s5.data[15] = 0;
+	s5.data[16] = 0;
+	s5.data[17] = 0;
+	s5.data[18] = 0;
+	s5.data[19] = 0;
+	s5.data[20] = 0;
+	s5.data[21] = 0;
+	s5.data[22] = 0;
+	s5.data[23] = 0;
+	s5.data[24] = 0;
+	s5.data[25] = 0;
+	s5.data[26] = 0;
+	s5.data[27] = 0;
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(28, 224, s1.data);
+	char * s2dump = GetString(28, 224, s2.data);
+	char * s3dump = GetString(28, 224, s3.data);
+	char * s4dump = GetString(28, 224, s4.data);
+	char * s5dump = GetString(28, 224, s5.data);
+	free(s1dump);
+	free(s2dump);
+	free(s3dump);
+	free(s4dump);
+	free(s5dump);
+
+#endif
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// red = s1 + s2 + s3 - s4 - s5
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Subtraction(&partialres1, &partialres2, &s4, field);
+	Subtraction(red, &partialres1, &s5, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
+
 #elif ARCHITECTURE_BITS == 16
+
+	// Note that a presents 28 chunks
+
+	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[14]; // 16 * 14 = 224
+	s1.data = s1data;
+	chunk_t s2data[14];
+	s2.data = s2data;
+	chunk_t s3data[14];
+	s3.data = s3data;
+	chunk_t s4data[14];
+	s4.data = s4data;
+	chunk_t s5data[14];
+	s5.data = s5data;
+
+	// Assuming a = (a13,...,a0) (32-bit chunks)
+	// s1 = (a6, a5, a4, a3, a2, a1, a0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	s1.data[8] = a->data[8];
+	s1.data[9] = a->data[9];
+	s1.data[10] = a->data[10];
+	s1.data[11] = a->data[11];
+	s1.data[12] = a->data[12];
+	s1.data[13] = a->data[13];
+	// s2 = (a10, a9, a8, a7, 0, 0, 0)
+	s2.data[0] = 0;
+	s2.data[1] = 0;
+	s2.data[2] = 0;
+	s2.data[3] = 0;
+	s2.data[4] = 0;
+	s2.data[5] = 0;
+	s2.data[6] = a->data[14];
+	s2.data[7] = a->data[15];
+	s2.data[8] = a->data[16];
+	s2.data[9] = a->data[17];
+	s2.data[10] = a->data[18];
+	s2.data[11] = a->data[19];
+	s2.data[12] = a->data[20];
+	s2.data[13] = a->data[21];
+	// s3 = (0, a13, a12, a11, 0, 0, 0)
+	s3.data[0] = 0;
+	s3.data[1] = 0;
+	s3.data[2] = 0;
+	s3.data[3] = 0;
+	s3.data[4] = 0;
+	s3.data[5] = 0;
+	s3.data[6] = a->data[22];
+	s3.data[7] = a->data[23];
+	s3.data[8] = a->data[24];
+	s3.data[9] = a->data[25];
+	s3.data[10] = a->data[26];
+	s3.data[11] = a->data[27];
+	s3.data[12] = 0;
+	s3.data[13] = 0;
+	// s4 = (a13, a12, a11, a10, a9, a8, a7)
+	s4.data[0] = a->data[14];
+	s4.data[1] = a->data[15];
+	s4.data[2] = a->data[16];
+	s4.data[3] = a->data[17];
+	s4.data[4] = a->data[18];
+	s4.data[5] = a->data[19];
+	s4.data[6] = a->data[20];
+	s4.data[7] = a->data[21];
+	s4.data[8] = a->data[22];
+	s4.data[9] = a->data[23];
+	s4.data[10] = a->data[24];
+	s4.data[11] = a->data[25];
+	s4.data[12] = a->data[26];
+	s4.data[13] = a->data[27];
+	// s5 = (0, 0, 0, 0, a13, a12, a11)
+	s5.data[0] = a->data[22];
+	s5.data[1] = a->data[23];
+	s5.data[2] = a->data[24];
+	s5.data[3] = a->data[25];
+	s5.data[4] = a->data[26];
+	s5.data[5] = a->data[27];
+	s5.data[6] = 0;
+	s5.data[7] = 0;
+	s5.data[8] = 0;
+	s5.data[9] = 0;
+	s5.data[10] = 0;
+	s5.data[11] = 0;
+	s5.data[12] = 0;
+	s5.data[13] = 0;
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(14, 224, s1.data);
+	char * s2dump = GetString(14, 224, s2.data);
+	char * s3dump = GetString(14, 224, s3.data);
+	char * s4dump = GetString(14, 224, s4.data);
+	char * s5dump = GetString(14, 224, s5.data);
+	free(s1dump);
+	free(s2dump);
+	free(s3dump);
+	free(s4dump);
+	free(s5dump);
+#endif
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// red = s1 + s2 + s3 - s4 - s5
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Subtraction(&partialres1, &partialres2, &s4, field);
+	Subtraction(red, &partialres1, &s5, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
 
 #elif ARCHITECTURE_BITS == 64
 
