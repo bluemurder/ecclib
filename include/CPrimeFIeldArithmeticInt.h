@@ -35,6 +35,7 @@ struct _field_t
 	unsigned int bits;			//!< Field dimension in bits
 	unsigned int chunksNumber;	//!< Number of chunks of every field element
 	element_t characteristics;	//!< Field characteristics
+	element_t mu;				//!< Barrett reduction precomputed term
 };
 
 typedef struct _field_t field_t;
@@ -44,6 +45,8 @@ unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field);
 unsigned int Equals(element_t * a, element_t * b, field_t * field);
 
 void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
+
+char * GetString(unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
 
 void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics);
 
@@ -56,5 +59,7 @@ void Addition(element_t * sum, element_t * a, element_t * b, field_t * field);
 void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field);
 
 void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field);
+
+void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field);
 
 #endif // CPRIMEFIELFARITHMETICINT_H

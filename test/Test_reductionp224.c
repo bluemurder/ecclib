@@ -26,36 +26,41 @@ int main()
 	wprintf(L"CPrimeFieldArithmetic fast modular reduction test");
 
 	field_t field;
-	SetField(&field, 192, "fffffffffffffffffffffffffffffffeffffffffffffffff");
+	SetField(&field, 224, "ffffffffffffffffffffffffffffffff000000000000000000000001");
 	element_t a;
-	unsigned int cnumber = 384 / ARCHITECTURE_BITS;
-	if (384 % ARCHITECTURE_BITS)
+	unsigned int cnumber = 448 / ARCHITECTURE_BITS;
+	if (448 % ARCHITECTURE_BITS)
 	{
 		cnumber++;
 	}
 	a.data = (chunk_t *)malloc(cnumber * sizeof(chunk_t));
-	SetString("f32825fc7b46e221f33861bad98abfaa7a919b3169eb3fc87f43e82788d59eb78f09ed1b06e4fcc5bb85e55acf4", cnumber, 384, a.data);
-	char * hexdump = GetString(cnumber, 384, a.data);
+	SetString("836599dda83f4f262f648033be340c2049385d9533ee3162d7219f0a86f3babdd10c85d6056a7ee5174a55cadbee486efd307da2334aea7b", cnumber, 448, a.data);
 	a.data[0];
 	a.data[1];
 	a.data[2];
+	a.data[3];
+	a.data[4];
+	a.data[5];
+	a.data[6];
+	a.data[7];
+	a.data[8];
+	a.data[9];
 	a.data[10];
+	a.data[11];
+	a.data[12];
+	a.data[13];
+	a.data[14];
+	//SetString("ffffffffffffffffffffffffffffffff000000000000100000000002", cnumber, 448, a.data);
+	char * hexdump = GetString(cnumber, 448, a.data);
 
 	element_t reduced;
 	SetElement(&reduced, "", &field);
-	FastReductionFIPSp192(&reduced, &a, &field);
+	FastReductionFIPSp224(&reduced, &a, &field);
 
 	char * hexdump2 = GetString(field.chunksNumber, field.bits, reduced.data);
 
-	reduced.data[0];
-	reduced.data[1];
-	reduced.data[2];
-	reduced.data[3];
-	reduced.data[4];
-	reduced.data[5];
-
 	element_t true_red;
-	SetElement(&true_red, "221eb65a46fdedda74084effc1003c59fbc71293fa688b47", &field);
+	SetElement(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
 
 	if (Equals(&reduced, &true_red, &field))
 	{

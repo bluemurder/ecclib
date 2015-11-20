@@ -23,7 +23,7 @@
 
 int main()
 {
-	wprintf(L"CPrimeFieldArithmetic Assignment test");
+	wprintf(L"CPrimeFieldArithmetic modular sum and modular subtraction  test");
 
 	field_t field;
 	SetField(&field, 45, "1fffffffffff");
