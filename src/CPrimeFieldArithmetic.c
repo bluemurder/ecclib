@@ -1184,3 +1184,173 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 #endif
 }
+
+//! Fast modulo reduction for p = 2^256 - 2^224 + 2^192 + 2^96 - 1 (FIPS 186-4 prime)
+//! Algorithm 2.29 [1]
+void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
+{
+#if ARCHITECTURE_BITS == 8
+
+
+
+#elif ARCHITECTURE_BITS == 16
+
+
+
+#elif ARCHITECTURE_BITS == 64
+
+
+
+#else // Set chunks to 32 bit
+
+	// Note that a presents 16 chunks
+
+	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[8]; // 32 * 8 = 256
+	s1.data = s1data;
+	chunk_t s2data[8];
+	s2.data = s2data;
+	chunk_t s3data[8];
+	s3.data = s3data;
+	chunk_t s4data[8];
+	s4.data = s4data;
+	chunk_t s5data[8];
+	s5.data = s5data;
+	chunk_t s6data[8];
+	s6.data = s6data;
+	chunk_t s7data[8];
+	s7.data = s7data;
+	chunk_t s8data[8];
+	s8.data = s8data;
+	chunk_t s9data[8];
+	s9.data = s9data;
+
+	// Assuming a = (c15,...,c0) (32-bit chunks)
+	// s1 = (c7, c6, c5, c4, c3, c2, c1, c0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	// s2 = (c15, c14, c13, c12, c11, 0, 0, 0)
+	s2.data[0] = 0;
+	s2.data[1] = 0;
+	s2.data[2] = 0;
+	s2.data[3] = a->data[11];
+	s2.data[4] = a->data[12];
+	s2.data[5] = a->data[13];
+	s2.data[6] = a->data[14];
+	s2.data[7] = a->data[15];
+	// s3 = (0, c15, c14, c13, c12, 0, 0, 0)
+	s3.data[0] = 0;
+	s3.data[1] = 0;
+	s3.data[2] = 0;
+	s3.data[3] = a->data[12];
+	s3.data[4] = a->data[13];
+	s3.data[5] = a->data[14];
+	s3.data[6] = a->data[15];
+	s3.data[7] = 0;
+	// s4 = (c15, c14, 0, 0, 0, c10, c9, c8)
+	s4.data[0] = a->data[8];
+	s4.data[1] = a->data[9];
+	s4.data[2] = a->data[10];
+	s4.data[3] = 0;
+	s4.data[4] = 0;
+	s4.data[5] = 0;
+	s4.data[6] = a->data[14];
+	s4.data[7] = a->data[15];
+	// s5 = (c8, c13, c15, c14, c13, c11, c10, c9)
+	s5.data[0] = a->data[9];
+	s5.data[1] = a->data[10];
+	s5.data[2] = a->data[11];
+	s5.data[3] = a->data[13];
+	s5.data[4] = a->data[14];
+	s5.data[5] = a->data[15];
+	s5.data[6] = a->data[13];
+	s5.data[7] = a->data[8];
+	// s6 = (c10, c8, 0, 0, 0, c13, c12, c11)
+	s6.data[0] = a->data[11];
+	s6.data[1] = a->data[12];
+	s6.data[2] = a->data[13];
+	s6.data[3] = 0;
+	s6.data[4] = 0;
+	s6.data[5] = 0;
+	s6.data[6] = a->data[8];
+	s6.data[7] = a->data[10];
+	// s7 = (c11, c9, 0, 0, c15, c14, c13, c12)
+	s7.data[0] = a->data[12];
+	s7.data[1] = a->data[13];
+	s7.data[2] = a->data[14];
+	s7.data[3] = a->data[15];
+	s7.data[4] = 0;
+	s7.data[5] = 0;
+	s7.data[6] = a->data[9];
+	s7.data[7] = a->data[11];
+	// s8 = (c12, 0, c10, c9, c8, c15, c14, c13)
+	s8.data[0] = a->data[13];
+	s8.data[1] = a->data[14];
+	s8.data[2] = a->data[15];
+	s8.data[3] = a->data[8];
+	s8.data[4] = a->data[9];
+	s8.data[5] = a->data[10];
+	s8.data[6] = 0;
+	s8.data[7] = a->data[12];
+	// s9 = (c13, 0, c11, c10, c9, 0, c15, c14)
+	s9.data[0] = a->data[14];
+	s9.data[1] = a->data[15];
+	s9.data[2] = 0;
+	s9.data[3] = a->data[9];
+	s9.data[4] = a->data[10];
+	s9.data[5] = a->data[11];
+	s9.data[6] = 0;
+	s9.data[7] = a->data[13];
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(8, 256, s1.data);
+	char * s2dump = GetString(8, 256, s2.data);
+	char * s3dump = GetString(8, 256, s3.data);
+	char * s4dump = GetString(8, 256, s4.data);
+	char * s5dump = GetString(8, 256, s5.data);
+	char * s6dump = GetString(8, 256, s6.data);
+	char * s7dump = GetString(8, 256, s7.data);
+	char * s8dump = GetString(8, 256, s8.data);
+	char * s9dump = GetString(8, 256, s9.data);
+	free(s1dump);
+	free(s2dump);
+	free(s3dump);
+	free(s4dump);
+	free(s5dump);
+	free(s6dump);
+	free(s7dump);
+	free(s8dump);
+	free(s9dump);
+#endif
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s2, field);
+	Addition(&partialres1, &partialres2, &s3, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Addition(&partialres1, &partialres2, &s4, field);
+	Addition(&partialres2, &partialres1, &s5, field);
+	Subtraction(&partialres1, &partialres2, &s6, field);
+	Subtraction(&partialres2, &partialres1, &s7, field);
+	Subtraction(&partialres1, &partialres2, &s8, field);
+	Subtraction(red, &partialres1, &s9, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
+
+#endif
+}
