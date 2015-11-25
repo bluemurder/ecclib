@@ -1191,7 +1191,370 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 {
 #if ARCHITECTURE_BITS == 8
 
+	// Note that a presents 64 chunks
 
+	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+
+	// Init partial results data
+	chunk_t s1data[32]; // 8 * 32 = 256
+	s1.data = s1data;
+	chunk_t s2data[32];
+	s2.data = s2data;
+	chunk_t s3data[32];
+	s3.data = s3data;
+	chunk_t s4data[32];
+	s4.data = s4data;
+	chunk_t s5data[32];
+	s5.data = s5data;
+	chunk_t s6data[32];
+	s6.data = s6data;
+	chunk_t s7data[32];
+	s7.data = s7data;
+	chunk_t s8data[32];
+	s8.data = s8data;
+	chunk_t s9data[32];
+	s9.data = s9data;
+
+	// Assuming a = (c15,...,c0) (32-bit chunks)
+	// s1 = (c7, c6, c5, c4, c3, c2, c1, c0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	s1.data[6] = a->data[6];
+	s1.data[7] = a->data[7];
+	s1.data[8] = a->data[8];
+	s1.data[9] = a->data[9];
+	s1.data[10] = a->data[10];
+	s1.data[11] = a->data[11];
+	s1.data[12] = a->data[12];
+	s1.data[13] = a->data[13];
+	s1.data[14] = a->data[14];
+	s1.data[15] = a->data[15];
+	s1.data[16] = a->data[16];
+	s1.data[17] = a->data[17];
+	s1.data[18] = a->data[18];
+	s1.data[19] = a->data[19];
+	s1.data[20] = a->data[20];
+	s1.data[21] = a->data[21];
+	s1.data[22] = a->data[22];
+	s1.data[23] = a->data[23];
+	s1.data[24] = a->data[24];
+	s1.data[25] = a->data[25];
+	s1.data[26] = a->data[26];
+	s1.data[27] = a->data[27];
+	s1.data[28] = a->data[28];
+	s1.data[29] = a->data[29];
+	s1.data[30] = a->data[30];
+	s1.data[31] = a->data[31];
+	// s2 = (c15, c14, c13, c12, c11, 0, 0, 0)
+	s2.data[0] = 0;
+	s2.data[1] = 0;
+	s2.data[2] = 0;
+	s2.data[3] = 0;
+	s2.data[4] = 0;
+	s2.data[5] = 0;
+	s2.data[6] = 0;
+	s2.data[7] = 0;
+	s2.data[8] = 0;
+	s2.data[9] = 0;
+	s2.data[10] = 0;
+	s2.data[11] = 0;
+	s2.data[12] = a->data[44];
+	s2.data[13] = a->data[45];
+	s2.data[14] = a->data[46];
+	s2.data[15] = a->data[47];
+	s2.data[16] = a->data[48];
+	s2.data[17] = a->data[49];
+	s2.data[18] = a->data[50];
+	s2.data[19] = a->data[51];
+	s2.data[20] = a->data[52];
+	s2.data[21] = a->data[53];
+	s2.data[22] = a->data[54];
+	s2.data[23] = a->data[55];
+	s2.data[24] = a->data[56];
+	s2.data[25] = a->data[57];
+	s2.data[26] = a->data[58];
+	s2.data[27] = a->data[59];
+	s2.data[28] = a->data[60];
+	s2.data[29] = a->data[61];
+	s2.data[30] = a->data[62];
+	s2.data[31] = a->data[63];
+	// s3 = (0, c15, c14, c13, c12, 0, 0, 0)
+	s3.data[0] = 0;
+	s3.data[1] = 0;
+	s3.data[2] = 0;
+	s3.data[3] = 0;
+	s3.data[4] = 0;
+	s3.data[5] = 0;
+	s3.data[6] = 0;
+	s3.data[7] = 0;
+	s3.data[8] = 0;
+	s3.data[9] = 0;
+	s3.data[10] = 0;
+	s3.data[11] = 0;
+	s3.data[12] = a->data[48];
+	s3.data[13] = a->data[49];
+	s3.data[14] = a->data[50];
+	s3.data[15] = a->data[51];
+	s3.data[16] = a->data[52];
+	s3.data[17] = a->data[53];
+	s3.data[18] = a->data[54];
+	s3.data[19] = a->data[55];
+	s3.data[20] = a->data[56];
+	s3.data[21] = a->data[57];
+	s3.data[22] = a->data[58];
+	s3.data[23] = a->data[59];
+	s3.data[24] = a->data[60];
+	s3.data[25] = a->data[61];
+	s3.data[26] = a->data[62];
+	s3.data[27] = a->data[63];
+	s3.data[28] = 0;
+	s3.data[29] = 0;
+	s3.data[30] = 0;
+	s3.data[31] = 0;
+	// s4 = (c15, c14, 0, 0, 0, c10, c9, c8)
+	s4.data[0] = a->data[32];
+	s4.data[1] = a->data[33];
+	s4.data[2] = a->data[34];
+	s4.data[3] = a->data[35];
+	s4.data[4] = a->data[36];
+	s4.data[5] = a->data[37];
+	s4.data[6] = a->data[38];
+	s4.data[7] = a->data[39];
+	s4.data[8] = a->data[40];
+	s4.data[9] = a->data[41];
+	s4.data[10] = a->data[42];
+	s4.data[11] = a->data[43];
+	s4.data[12] = 0;
+	s4.data[13] = 0;
+	s4.data[14] = 0;
+	s4.data[15] = 0;
+	s4.data[16] = 0;
+	s4.data[17] = 0;
+	s4.data[18] = 0;
+	s4.data[19] = 0;
+	s4.data[20] = 0;
+	s4.data[21] = 0;
+	s4.data[22] = 0;
+	s4.data[23] = 0;
+	s4.data[24] = a->data[56];
+	s4.data[25] = a->data[57];
+	s4.data[26] = a->data[58];
+	s4.data[27] = a->data[59];
+	s4.data[28] = a->data[60];
+	s4.data[29] = a->data[61];
+	s4.data[30] = a->data[62];
+	s4.data[31] = a->data[63];
+	// s5 = (c8, c13, c15, c14, c13, c11, c10, c9)
+	s5.data[0] = a->data[36];
+	s5.data[1] = a->data[37];
+	s5.data[2] = a->data[38];
+	s5.data[3] = a->data[39];
+	s5.data[4] = a->data[40];
+	s5.data[5] = a->data[41];
+	s5.data[6] = a->data[42];
+	s5.data[7] = a->data[43];
+	s5.data[8] = a->data[44];
+	s5.data[9] = a->data[45];
+	s5.data[10] = a->data[46];
+	s5.data[11] = a->data[47];
+	s5.data[12] = a->data[52];
+	s5.data[13] = a->data[53];
+	s5.data[14] = a->data[54];
+	s5.data[15] = a->data[55];
+	s5.data[16] = a->data[56];
+	s5.data[17] = a->data[57];
+	s5.data[18] = a->data[58];
+	s5.data[19] = a->data[59];
+	s5.data[20] = a->data[60];
+	s5.data[21] = a->data[61];
+	s5.data[22] = a->data[62];
+	s5.data[23] = a->data[63];
+	s5.data[24] = a->data[52];
+	s5.data[25] = a->data[53];
+	s5.data[26] = a->data[54];
+	s5.data[27] = a->data[55];
+	s5.data[28] = a->data[32];
+	s5.data[29] = a->data[33];
+	s5.data[30] = a->data[34];
+	s5.data[31] = a->data[35];
+	// s6 = (c10, c8, 0, 0, 0, c13, c12, c11)
+	s6.data[0] = a->data[44];
+	s6.data[1] = a->data[45];
+	s6.data[2] = a->data[46];
+	s6.data[3] = a->data[47];
+	s6.data[4] = a->data[48];
+	s6.data[5] = a->data[49];
+	s6.data[6] = a->data[50];
+	s6.data[7] = a->data[51];
+	s6.data[8] = a->data[52];
+	s6.data[9] = a->data[53];
+	s6.data[10] = a->data[54];
+	s6.data[11] = a->data[55];
+	s6.data[12] = 0;
+	s6.data[13] = 0;
+	s6.data[14] = 0;
+	s6.data[15] = 0;
+	s6.data[16] = 0;
+	s6.data[17] = 0;
+	s6.data[18] = 0;
+	s6.data[19] = 0;
+	s6.data[20] = 0;
+	s6.data[21] = 0;
+	s6.data[22] = 0;
+	s6.data[23] = 0;
+	s6.data[24] = a->data[32];
+	s6.data[25] = a->data[33];
+	s6.data[26] = a->data[34];
+	s6.data[27] = a->data[35];
+	s6.data[28] = a->data[40];
+	s6.data[29] = a->data[41];
+	s6.data[30] = a->data[42];
+	s6.data[31] = a->data[43];
+	// s7 = (c11, c9, 0, 0, c15, c14, c13, c12)
+	s7.data[0] = a->data[48];
+	s7.data[1] = a->data[49];
+	s7.data[2] = a->data[50];
+	s7.data[3] = a->data[51];
+	s7.data[4] = a->data[52];
+	s7.data[5] = a->data[53];
+	s7.data[6] = a->data[54];
+	s7.data[7] = a->data[55];
+	s7.data[8] = a->data[56];
+	s7.data[9] = a->data[57];
+	s7.data[10] = a->data[58];
+	s7.data[11] = a->data[59];
+	s7.data[12] = a->data[60];
+	s7.data[13] = a->data[61];
+	s7.data[14] = a->data[62];
+	s7.data[15] = a->data[63];
+	s7.data[16] = 0;
+	s7.data[17] = 0;
+	s7.data[18] = 0;
+	s7.data[19] = 0;
+	s7.data[20] = 0;
+	s7.data[21] = 0;
+	s7.data[22] = 0;
+	s7.data[23] = 0;
+	s7.data[24] = a->data[36];
+	s7.data[25] = a->data[37];
+	s7.data[26] = a->data[38];
+	s7.data[27] = a->data[39];
+	s7.data[28] = a->data[44];
+	s7.data[29] = a->data[45];
+	s7.data[30] = a->data[46];
+	s7.data[31] = a->data[47];
+	// s8 = (c12, 0, c10, c9, c8, c15, c14, c13)
+	s8.data[0] = a->data[52];
+	s8.data[1] = a->data[53];
+	s8.data[2] = a->data[54];
+	s8.data[3] = a->data[55];
+	s8.data[4] = a->data[56];
+	s8.data[5] = a->data[57];
+	s8.data[6] = a->data[58];
+	s8.data[7] = a->data[59];
+	s8.data[8] = a->data[60];
+	s8.data[9] = a->data[61];
+	s8.data[10] = a->data[62];
+	s8.data[11] = a->data[63];
+	s8.data[12] = a->data[32];
+	s8.data[13] = a->data[33];
+	s8.data[14] = a->data[34];
+	s8.data[15] = a->data[35];
+	s8.data[16] = a->data[36];
+	s8.data[17] = a->data[37];
+	s8.data[18] = a->data[38];
+	s8.data[19] = a->data[39];
+	s8.data[20] = a->data[40];
+	s8.data[21] = a->data[41];
+	s8.data[22] = a->data[42];
+	s8.data[23] = a->data[43];
+	s8.data[24] = 0;
+	s8.data[25] = 0;
+	s8.data[26] = 0;
+	s8.data[27] = 0;
+	s8.data[28] = a->data[48];
+	s8.data[29] = a->data[49];
+	s8.data[30] = a->data[50];
+	s8.data[31] = a->data[51];
+	// s9 = (c13, 0, c11, c10, c9, 0, c15, c14)
+	s9.data[0] = a->data[56];
+	s9.data[1] = a->data[57];
+	s9.data[2] = a->data[58];
+	s9.data[3] = a->data[59];
+	s9.data[4] = a->data[60];
+	s9.data[5] = a->data[61];
+	s9.data[6] = a->data[62];
+	s9.data[7] = a->data[63];
+	s9.data[8] = 0;
+	s9.data[9] = 0;
+	s9.data[10] = 0;
+	s9.data[11] = 0;
+	s9.data[12] = a->data[36];
+	s9.data[13] = a->data[37];
+	s9.data[14] = a->data[38];
+	s9.data[15] = a->data[39];
+	s9.data[16] = a->data[40];
+	s9.data[17] = a->data[41];
+	s9.data[18] = a->data[42];
+	s9.data[19] = a->data[43];
+	s9.data[20] = a->data[44];
+	s9.data[21] = a->data[45];
+	s9.data[22] = a->data[46];
+	s9.data[23] = a->data[47];
+	s9.data[24] = 0;
+	s9.data[25] = 0;
+	s9.data[26] = 0;
+	s9.data[27] = 0;
+	s9.data[28] = a->data[52];
+	s9.data[29] = a->data[53];
+	s9.data[30] = a->data[54];
+	s9.data[31] = a->data[55];
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(32, 256, s1.data);
+	char * s2dump = GetString(32, 256, s2.data);
+	char * s3dump = GetString(32, 256, s3.data);
+	char * s4dump = GetString(32, 256, s4.data);
+	char * s5dump = GetString(32, 256, s5.data);
+	char * s6dump = GetString(32, 256, s6.data);
+	char * s7dump = GetString(32, 256, s7.data);
+	char * s8dump = GetString(32, 256, s8.data);
+	char * s9dump = GetString(32, 256, s9.data);
+	free(s1dump);
+	free(s2dump);
+	free(s3dump);
+	free(s4dump);
+	free(s5dump);
+	free(s6dump);
+	free(s7dump);
+	free(s8dump);
+	free(s9dump);
+#endif
+
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
+
+	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s2, field);
+	Addition(&partialres1, &partialres2, &s3, field);
+	Addition(&partialres2, &partialres1, &s3, field);
+	Addition(&partialres1, &partialres2, &s4, field);
+	Addition(&partialres2, &partialres1, &s5, field);
+	Subtraction(&partialres1, &partialres2, &s6, field);
+	Subtraction(&partialres2, &partialres1, &s7, field);
+	Subtraction(&partialres1, &partialres2, &s8, field);
+	Subtraction(red, &partialres1, &s9, field);
+
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
 
 #elif ARCHITECTURE_BITS == 16
 
@@ -1415,12 +1778,8 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 	// Free partial results space
 	FreeElement(&partialres1);
 	FreeElement(&partialres2);
-
-
-
+	
 #elif ARCHITECTURE_BITS == 64
-
-
 
 #else // Set chunks to 32 bit
 
