@@ -64,4 +64,8 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field);
 
 void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field);
 
+void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field);
+
+void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field);
+
 #endif // CPRIMEFIELFARITHMETICINT_H
