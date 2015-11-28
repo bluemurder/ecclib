@@ -63,6 +63,7 @@ int main()
 
 	element_t true_red;
 	SetElement(&true_red, "3bc5df4ee3d2352aa1642805236ae6d58d375564817f3efb403e483d3c5cc25a027e259b7bf4c984d76cc9418eebc83387642f4aa50bcfe5a0739ef9e7a6a38a21", &field);
+	char * hexdump3 = GetString(field.chunksNumber, field.bits, true_red.data);
 
 	if (Equals(&reduced, &true_red, &field))
 	{

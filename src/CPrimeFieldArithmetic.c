@@ -392,7 +392,7 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 	s2.data[17] = 0;
 	s2.data[18] = 0;
 	s2.data[19] = 0;
-	s2.data[20] =0;
+	s2.data[20] = 0;
 	s2.data[21] = 0;
 	s2.data[22] = 0;
 	s2.data[23] = 0;
@@ -2329,7 +2329,7 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 	// s6 = (0, 0, 0, 0, c23, c22, c21, c20, 0, 0, 0, 0)
 	s6.data[0] = 0;
 	s6.data[1] = 0;
-	s6.data[2] =0;
+	s6.data[2] = 0;
 	s6.data[3] = 0;
 	s6.data[4] = 0;
 	s6.data[5] = 0;
@@ -2942,147 +2942,147 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 #elif ARCHITECTURE_BITS == 64
 
-// Note that a presents 12 chunks
+	// Note that a presents 12 chunks
 
-element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
+	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
 
-// Init partial results data
-chunk_t s1data[6]; // 64 * 6 = 384
-s1.data = s1data;
-chunk_t s2data[6];
-s2.data = s2data;
-chunk_t s3data[6];
-s3.data = s3data;
-chunk_t s4data[6];
-s4.data = s4data;
-chunk_t s5data[6];
-s5.data = s5data;
-chunk_t s6data[6];
-s6.data = s6data;
-chunk_t s7data[6];
-s7.data = s7data;
-chunk_t s8data[6];
-s8.data = s8data;
-chunk_t s9data[6];
-s9.data = s9data;
-chunk_t s10data[6];
-s10.data = s10data;
+	// Init partial results data
+	chunk_t s1data[6]; // 64 * 6 = 384
+	s1.data = s1data;
+	chunk_t s2data[6];
+	s2.data = s2data;
+	chunk_t s3data[6];
+	s3.data = s3data;
+	chunk_t s4data[6];
+	s4.data = s4data;
+	chunk_t s5data[6];
+	s5.data = s5data;
+	chunk_t s6data[6];
+	s6.data = s6data;
+	chunk_t s7data[6];
+	s7.data = s7data;
+	chunk_t s8data[6];
+	s8.data = s8data;
+	chunk_t s9data[6];
+	s9.data = s9data;
+	chunk_t s10data[6];
+	s10.data = s10data;
 
-// Assuming a = (c23,...,c0) (32-bit chunks)
-// s1 = (c11, c10, c9, c8, c7, c6, c5, c4, c3, c2, c1, c0)
-s1.data[0] = a->data[0];
-s1.data[1] = a->data[1];
-s1.data[2] = a->data[2];
-s1.data[3] = a->data[3];
-s1.data[4] = a->data[4];
-s1.data[5] = a->data[5];
-// s2 = (0 ,0, 0, 0, 0, c23, c22, c21, 0, 0, 0, 0)
-s2.data[0] = 0;
-s2.data[1] = 0;
-s2.data[2] = (a->data[10] >> 32) + (a->data[11] << 32);
-s2.data[3] = a->data[11] >> 32;
-s2.data[4] = 0;
-s2.data[5] = 0;
-// s3 = (c23, c22, c21, c20, c19, c18, c17, c16, c15, c14, c13, c12)
-s3.data[0] = a->data[6];
-s3.data[1] = a->data[7];
-s3.data[2] = a->data[8];
-s3.data[3] = a->data[9];
-s3.data[4] = a->data[10];
-s3.data[5] = a->data[11];
-// s4 = (c20, c19, c18, c17, c16, c15, c14, c13, c12, c23, c22, c21)
-s4.data[0] = (a->data[10] >> 32) + (a->data[11] << 32);
-s4.data[1] = (a->data[11] >> 32) + (a->data[6] << 32);
-s4.data[2] = (a->data[6] >> 32) + (a->data[7] << 32);
-s4.data[3] = (a->data[7] >> 32) + (a->data[8] << 32);
-s4.data[4] = (a->data[8] >> 32) + (a->data[9] << 32);
-s4.data[5] = (a->data[9] >> 32) + (a->data[10] << 32);
-// s5 = (c19, c18, c17, c16, c15, c14, c13, c12, c20, 0, c23, 0)
-s5.data[0] = a->data[11] & 0xffffffff00000000;
-s5.data[1] = a->data[10] << 32;
-s5.data[2] = a->data[6];
-s5.data[3] = a->data[7];
-s5.data[4] = a->data[8];
-s5.data[5] = a->data[9];
-// s6 = (0, 0, 0, 0, c23, c22, c21, c20, 0, 0, 0, 0)
-s6.data[0] = 0;
-s6.data[1] = 0;
-s6.data[2] = a->data[10];
-s6.data[3] = a->data[11];
-s6.data[4] = 0;
-s6.data[5] = 0;
-// s7 = (0, 0, 0, 0, 0, 0, c23, c22, c21, 0, 0, c20)
-s7.data[0] = a->data[10] & 0x00000000ffffffff;
-s7.data[1] = a->data[10] & 0xffffffff00000000;
-s7.data[2] = a->data[11];
-s7.data[3] = 0;
-s7.data[4] = 0;
-s7.data[5] = 0;
-// s8 = (c22, c21, c20, c19, c18, c17, c16, c15, c14, c13, c12, c23)
-s8.data[0] = (a->data[11] >> 32) + (a->data[6] << 32);
-s8.data[1] = (a->data[6] >> 32) + (a->data[7] << 32);
-s8.data[2] = (a->data[7] >> 32) + (a->data[8] << 32);
-s8.data[3] = (a->data[8] >> 32) + (a->data[9] << 32);
-s8.data[4] = (a->data[9] >> 32) + (a->data[10] << 32);
-s8.data[5] = (a->data[10] >> 32) + (a->data[11] << 32);
-// s9 = (0, 0, 0, 0, 0, 0, 0, c23, c22, c21, c20, 0)
-s9.data[0] = a->data[10] << 32;
-s9.data[1] = (a->data[10] >> 32) + (a->data[11] << 32);
-s9.data[2] = a->data[11] >> 32;
-s9.data[3] = 0;
-s9.data[4] = 0;
-s9.data[5] = 0;
-// s10 = (0, 0, 0, 0, 0, 0, 0, c23, c23, 0, 0, 0)
-s10.data[0] = 0;
-s10.data[1] = a->data[11] & 0xffffffff00000000;;
-s10.data[2] = a->data[11] >> 32;
-s10.data[3] = 0;
-s10.data[4] = 0;
-s10.data[5] = 0;
+	// Assuming a = (c23,...,c0) (32-bit chunks)
+	// s1 = (c11, c10, c9, c8, c7, c6, c5, c4, c3, c2, c1, c0)
+	s1.data[0] = a->data[0];
+	s1.data[1] = a->data[1];
+	s1.data[2] = a->data[2];
+	s1.data[3] = a->data[3];
+	s1.data[4] = a->data[4];
+	s1.data[5] = a->data[5];
+	// s2 = (0 ,0, 0, 0, 0, c23, c22, c21, 0, 0, 0, 0)
+	s2.data[0] = 0;
+	s2.data[1] = 0;
+	s2.data[2] = (a->data[10] >> 32) + (a->data[11] << 32);
+	s2.data[3] = a->data[11] >> 32;
+	s2.data[4] = 0;
+	s2.data[5] = 0;
+	// s3 = (c23, c22, c21, c20, c19, c18, c17, c16, c15, c14, c13, c12)
+	s3.data[0] = a->data[6];
+	s3.data[1] = a->data[7];
+	s3.data[2] = a->data[8];
+	s3.data[3] = a->data[9];
+	s3.data[4] = a->data[10];
+	s3.data[5] = a->data[11];
+	// s4 = (c20, c19, c18, c17, c16, c15, c14, c13, c12, c23, c22, c21)
+	s4.data[0] = (a->data[10] >> 32) + (a->data[11] << 32);
+	s4.data[1] = (a->data[11] >> 32) + (a->data[6] << 32);
+	s4.data[2] = (a->data[6] >> 32) + (a->data[7] << 32);
+	s4.data[3] = (a->data[7] >> 32) + (a->data[8] << 32);
+	s4.data[4] = (a->data[8] >> 32) + (a->data[9] << 32);
+	s4.data[5] = (a->data[9] >> 32) + (a->data[10] << 32);
+	// s5 = (c19, c18, c17, c16, c15, c14, c13, c12, c20, 0, c23, 0)
+	s5.data[0] = a->data[11] & 0xffffffff00000000;
+	s5.data[1] = a->data[10] << 32;
+	s5.data[2] = a->data[6];
+	s5.data[3] = a->data[7];
+	s5.data[4] = a->data[8];
+	s5.data[5] = a->data[9];
+	// s6 = (0, 0, 0, 0, c23, c22, c21, c20, 0, 0, 0, 0)
+	s6.data[0] = 0;
+	s6.data[1] = 0;
+	s6.data[2] = a->data[10];
+	s6.data[3] = a->data[11];
+	s6.data[4] = 0;
+	s6.data[5] = 0;
+	// s7 = (0, 0, 0, 0, 0, 0, c23, c22, c21, 0, 0, c20)
+	s7.data[0] = a->data[10] & 0x00000000ffffffff;
+	s7.data[1] = a->data[10] & 0xffffffff00000000;
+	s7.data[2] = a->data[11];
+	s7.data[3] = 0;
+	s7.data[4] = 0;
+	s7.data[5] = 0;
+	// s8 = (c22, c21, c20, c19, c18, c17, c16, c15, c14, c13, c12, c23)
+	s8.data[0] = (a->data[11] >> 32) + (a->data[6] << 32);
+	s8.data[1] = (a->data[6] >> 32) + (a->data[7] << 32);
+	s8.data[2] = (a->data[7] >> 32) + (a->data[8] << 32);
+	s8.data[3] = (a->data[8] >> 32) + (a->data[9] << 32);
+	s8.data[4] = (a->data[9] >> 32) + (a->data[10] << 32);
+	s8.data[5] = (a->data[10] >> 32) + (a->data[11] << 32);
+	// s9 = (0, 0, 0, 0, 0, 0, 0, c23, c22, c21, c20, 0)
+	s9.data[0] = a->data[10] << 32;
+	s9.data[1] = (a->data[10] >> 32) + (a->data[11] << 32);
+	s9.data[2] = a->data[11] >> 32;
+	s9.data[3] = 0;
+	s9.data[4] = 0;
+	s9.data[5] = 0;
+	// s10 = (0, 0, 0, 0, 0, 0, 0, c23, c23, 0, 0, 0)
+	s10.data[0] = 0;
+	s10.data[1] = a->data[11] & 0xffffffff00000000;;
+	s10.data[2] = a->data[11] >> 32;
+	s10.data[3] = 0;
+	s10.data[4] = 0;
+	s10.data[5] = 0;
 
-// Debug info
+	// Debug info
 #ifdef _DEBUG
-char * s1dump = GetString(6, 384, s1.data);
-char * s2dump = GetString(6, 384, s2.data);
-char * s3dump = GetString(6, 384, s3.data);
-char * s4dump = GetString(6, 384, s4.data);
-char * s5dump = GetString(6, 384, s5.data);
-char * s6dump = GetString(6, 384, s6.data);
-char * s7dump = GetString(6, 384, s7.data);
-char * s8dump = GetString(6, 384, s8.data);
-char * s9dump = GetString(6, 384, s9.data);
-char * s10dump = GetString(6, 384, s10.data);
-free(s1dump);
-free(s2dump);
-free(s3dump);
-free(s4dump);
-free(s5dump);
-free(s6dump);
-free(s7dump);
-free(s8dump);
-free(s9dump);
-free(s10dump);
+	char * s1dump = GetString(6, 384, s1.data);
+	char * s2dump = GetString(6, 384, s2.data);
+	char * s3dump = GetString(6, 384, s3.data);
+	char * s4dump = GetString(6, 384, s4.data);
+	char * s5dump = GetString(6, 384, s5.data);
+	char * s6dump = GetString(6, 384, s6.data);
+	char * s7dump = GetString(6, 384, s7.data);
+	char * s8dump = GetString(6, 384, s8.data);
+	char * s9dump = GetString(6, 384, s9.data);
+	char * s10dump = GetString(6, 384, s10.data);
+	free(s1dump);
+	free(s2dump);
+	free(s3dump);
+	free(s4dump);
+	free(s5dump);
+	free(s6dump);
+	free(s7dump);
+	free(s8dump);
+	free(s9dump);
+	free(s10dump);
 #endif
 
-// Allocate space for sum results
-SetElement(&partialres1, "", field);
-SetElement(&partialres2, "", field);
+	// Allocate space for sum results
+	SetElement(&partialres1, "", field);
+	SetElement(&partialres2, "", field);
 
-// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
-Addition(&partialres1, &s1, &s2, field);
-Addition(&partialres2, &partialres1, &s2, field);
-Addition(&partialres1, &partialres2, &s3, field);
-Addition(&partialres2, &partialres1, &s4, field);
-Addition(&partialres1, &partialres2, &s5, field);
-Addition(&partialres2, &partialres1, &s6, field);
-Addition(&partialres1, &partialres2, &s7, field);
-Subtraction(&partialres2, &partialres1, &s8, field);
-Subtraction(&partialres1, &partialres2, &s9, field);
-Subtraction(red, &partialres1, &s10, field);
+	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
+	Addition(&partialres1, &s1, &s2, field);
+	Addition(&partialres2, &partialres1, &s2, field);
+	Addition(&partialres1, &partialres2, &s3, field);
+	Addition(&partialres2, &partialres1, &s4, field);
+	Addition(&partialres1, &partialres2, &s5, field);
+	Addition(&partialres2, &partialres1, &s6, field);
+	Addition(&partialres1, &partialres2, &s7, field);
+	Subtraction(&partialres2, &partialres1, &s8, field);
+	Subtraction(&partialres1, &partialres2, &s9, field);
+	Subtraction(red, &partialres1, &s10, field);
 
-// Free partial results space
-FreeElement(&partialres1);
-FreeElement(&partialres2);
+	// Free partial results space
+	FreeElement(&partialres1);
+	FreeElement(&partialres2);
 
 #else // Set chunks to 32 bit
 
@@ -3297,7 +3297,255 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 {
 #if ARCHITECTURE_BITS == 8
 
+	// a is 1042 bit wide, so 131 chunks of 8 bit are necessary
+
+	element_t s1, s2;
+
+	// Init partial results data
+	chunk_t s1data[66]; // 8 * 66 = 528 = 521 + 7
+	s1.data = s1data;
+	chunk_t s2data[66];
+	s2.data = s2data;
+
+	// Assuming a = (a1041,...,a0) (1-bit chunks)
+	// s1 = (a1041, ..., a521)
+	s1.data[0] = (a->data[65] >> 1) + (a->data[66] << 7);
+	s1.data[1] = (a->data[66] >> 1) + (a->data[67] << 7);
+	s1.data[2] = (a->data[67] >> 1) + (a->data[68] << 7);
+	s1.data[3] = (a->data[68] >> 1) + (a->data[69] << 7);
+	s1.data[4] = (a->data[69] >> 1) + (a->data[70] << 7);
+	s1.data[5] = (a->data[70] >> 1) + (a->data[71] << 7);
+	s1.data[6] = (a->data[71] >> 1) + (a->data[72] << 7);
+	s1.data[7] = (a->data[72] >> 1) + (a->data[73] << 7);
+	s1.data[8] = (a->data[73] >> 1) + (a->data[74] << 7);
+	s1.data[9] = (a->data[74] >> 1) + (a->data[75] << 7);
+	s1.data[10] = (a->data[75] >> 1) + (a->data[76] << 7);
+	s1.data[11] = (a->data[76] >> 1) + (a->data[77] << 7);
+	s1.data[12] = (a->data[77] >> 1) + (a->data[78] << 7);
+	s1.data[13] = (a->data[78] >> 1) + (a->data[79] << 7);
+	s1.data[14] = (a->data[79] >> 1) + (a->data[80] << 7);
+	s1.data[15] = (a->data[80] >> 1) + (a->data[81] << 7);
+	s1.data[16] = (a->data[81] >> 1) + (a->data[82] << 7);
+	s1.data[17] = (a->data[82] >> 1) + (a->data[83] << 7);
+	s1.data[18] = (a->data[83] >> 1) + (a->data[84] << 7);
+	s1.data[19] = (a->data[84] >> 1) + (a->data[85] << 7);
+	s1.data[20] = (a->data[85] >> 1) + (a->data[86] << 7);
+	s1.data[21] = (a->data[86] >> 1) + (a->data[87] << 7);
+	s1.data[22] = (a->data[87] >> 1) + (a->data[88] << 7);
+	s1.data[23] = (a->data[88] >> 1) + (a->data[89] << 7);
+	s1.data[24] = (a->data[89] >> 1) + (a->data[90] << 7);
+	s1.data[25] = (a->data[90] >> 1) + (a->data[91] << 7);
+	s1.data[26] = (a->data[91] >> 1) + (a->data[92] << 7);
+	s1.data[27] = (a->data[92] >> 1) + (a->data[93] << 7);
+	s1.data[28] = (a->data[93] >> 1) + (a->data[94] << 7);
+	s1.data[29] = (a->data[94] >> 1) + (a->data[95] << 7);
+	s1.data[30] = (a->data[95] >> 1) + (a->data[96] << 7);
+	s1.data[31] = (a->data[96] >> 1) + (a->data[97] << 7);
+	s1.data[32] = (a->data[97] >> 1) + (a->data[98] << 7);
+	s1.data[33] = (a->data[98] >> 1) + (a->data[99] << 7);
+	s1.data[34] = (a->data[99] >> 1) + (a->data[100] << 7);
+	s1.data[35] = (a->data[100] >> 1) + (a->data[101] << 7);
+	s1.data[36] = (a->data[101] >> 1) + (a->data[102] << 7);
+	s1.data[37] = (a->data[102] >> 1) + (a->data[103] << 7);
+	s1.data[38] = (a->data[103] >> 1) + (a->data[104] << 7);
+	s1.data[39] = (a->data[104] >> 1) + (a->data[105] << 7);
+	s1.data[40] = (a->data[105] >> 1) + (a->data[106] << 7);
+	s1.data[41] = (a->data[106] >> 1) + (a->data[107] << 7);
+	s1.data[42] = (a->data[107] >> 1) + (a->data[108] << 7);
+	s1.data[43] = (a->data[108] >> 1) + (a->data[109] << 7);
+	s1.data[44] = (a->data[109] >> 1) + (a->data[110] << 7);
+	s1.data[45] = (a->data[110] >> 1) + (a->data[111] << 7);
+	s1.data[46] = (a->data[111] >> 1) + (a->data[112] << 7);
+	s1.data[47] = (a->data[112] >> 1) + (a->data[113] << 7);
+	s1.data[48] = (a->data[113] >> 1) + (a->data[114] << 7);
+	s1.data[49] = (a->data[114] >> 1) + (a->data[115] << 7);
+	s1.data[50] = (a->data[115] >> 1) + (a->data[116] << 7);
+	s1.data[51] = (a->data[116] >> 1) + (a->data[117] << 7);
+	s1.data[52] = (a->data[117] >> 1) + (a->data[118] << 7);
+	s1.data[53] = (a->data[118] >> 1) + (a->data[119] << 7);
+	s1.data[54] = (a->data[119] >> 1) + (a->data[120] << 7);
+	s1.data[55] = (a->data[120] >> 1) + (a->data[121] << 7);
+	s1.data[56] = (a->data[121] >> 1) + (a->data[122] << 7);
+	s1.data[57] = (a->data[122] >> 1) + (a->data[123] << 7);
+	s1.data[58] = (a->data[123] >> 1) + (a->data[124] << 7);
+	s1.data[59] = (a->data[124] >> 1) + (a->data[125] << 7);
+	s1.data[60] = (a->data[125] >> 1) + (a->data[126] << 7);
+	s1.data[61] = (a->data[126] >> 1) + (a->data[127] << 7);
+	s1.data[62] = (a->data[127] >> 1) + (a->data[128] << 7);
+	s1.data[63] = (a->data[128] >> 1) + (a->data[129] << 7);
+	s1.data[64] = (a->data[129] >> 1) + (a->data[130] << 7);
+	s1.data[65] = a->data[130] >> 1;
+	// s2 = (a520, ..., a2, a1, a0)
+	s2.data[0] = a->data[0];
+	s2.data[1] = a->data[1];
+	s2.data[2] = a->data[2];
+	s2.data[3] = a->data[3];
+	s2.data[4] = a->data[4];
+	s2.data[5] = a->data[5];
+	s2.data[6] = a->data[6];
+	s2.data[7] = a->data[7];
+	s2.data[8] = a->data[8];
+	s2.data[9] = a->data[9];
+	s2.data[10] = a->data[10];
+	s2.data[11] = a->data[11];
+	s2.data[12] = a->data[12];
+	s2.data[13] = a->data[13];
+	s2.data[14] = a->data[14];
+	s2.data[15] = a->data[15];
+	s2.data[16] = a->data[16];
+	s2.data[17] = a->data[17];
+	s2.data[18] = a->data[18];
+	s2.data[19] = a->data[19];
+	s2.data[20] = a->data[20];
+	s2.data[21] = a->data[21];
+	s2.data[22] = a->data[22];
+	s2.data[23] = a->data[23];
+	s2.data[24] = a->data[24];
+	s2.data[25] = a->data[25];
+	s2.data[26] = a->data[26];
+	s2.data[27] = a->data[27];
+	s2.data[28] = a->data[28];
+	s2.data[29] = a->data[29];
+	s2.data[30] = a->data[30];
+	s2.data[31] = a->data[31];
+	s2.data[32] = a->data[32];
+	s2.data[33] = a->data[33];
+	s2.data[34] = a->data[34];
+	s2.data[35] = a->data[35];
+	s2.data[36] = a->data[36];
+	s2.data[37] = a->data[37];
+	s2.data[38] = a->data[38];
+	s2.data[39] = a->data[39];
+	s2.data[40] = a->data[40];
+	s2.data[41] = a->data[41];
+	s2.data[42] = a->data[42];
+	s2.data[43] = a->data[43];
+	s2.data[44] = a->data[44];
+	s2.data[45] = a->data[45];
+	s2.data[46] = a->data[46];
+	s2.data[47] = a->data[47];
+	s2.data[48] = a->data[48];
+	s2.data[49] = a->data[49];
+	s2.data[50] = a->data[50];
+	s2.data[51] = a->data[51];
+	s2.data[52] = a->data[52];
+	s2.data[53] = a->data[53];
+	s2.data[54] = a->data[54];
+	s2.data[55] = a->data[55];
+	s2.data[56] = a->data[56];
+	s2.data[57] = a->data[57];
+	s2.data[58] = a->data[58];
+	s2.data[59] = a->data[59];
+	s2.data[60] = a->data[60];
+	s2.data[61] = a->data[61];
+	s2.data[62] = a->data[62];
+	s2.data[63] = a->data[63];
+	s2.data[64] = a->data[64];
+	s2.data[65] = a->data[65] & 0x0000000000000001;
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(66, 521, s1.data);
+	char * s2dump = GetString(66, 521, s2.data);
+	free(s1dump);
+	free(s2dump);
+#endif
+
+	// s1 + s2
+	Addition(red, &s1, &s2, field);
+
 #elif ARCHITECTURE_BITS == 16
+
+	// a is 1042 bit wide, so 66 chunks of 16 bit are necessary
+
+	element_t s1, s2;
+
+	// Init partial results data
+	chunk_t s1data[33]; // 16 * 33 = 528 = 521 + 7
+	s1.data = s1data;
+	chunk_t s2data[33];
+	s2.data = s2data;
+
+	// Assuming a = (a1041,...,a0) (1-bit chunks)
+	// s1 = (a1041, ..., a521)
+	s1.data[0] = (a->data[32] >> 9) + (a->data[33] << 7);
+	s1.data[1] = (a->data[33] >> 9) + (a->data[34] << 7);
+	s1.data[2] = (a->data[34] >> 9) + (a->data[35] << 7);
+	s1.data[3] = (a->data[35] >> 9) + (a->data[36] << 7);
+	s1.data[4] = (a->data[36] >> 9) + (a->data[37] << 7);
+	s1.data[5] = (a->data[37] >> 9) + (a->data[38] << 7);
+	s1.data[6] = (a->data[38] >> 9) + (a->data[39] << 7);
+	s1.data[7] = (a->data[39] >> 9) + (a->data[40] << 7);
+	s1.data[8] = (a->data[40] >> 9) + (a->data[41] << 7);
+	s1.data[9] = (a->data[41] >> 9) + (a->data[42] << 7);
+	s1.data[10] = (a->data[42] >> 9) + (a->data[43] << 7);
+	s1.data[11] = (a->data[43] >> 9) + (a->data[44] << 7);
+	s1.data[12] = (a->data[44] >> 9) + (a->data[45] << 7);
+	s1.data[13] = (a->data[45] >> 9) + (a->data[46] << 7);
+	s1.data[14] = (a->data[46] >> 9) + (a->data[47] << 7);
+	s1.data[15] = (a->data[47] >> 9) + (a->data[48] << 7);
+	s1.data[16] = (a->data[48] >> 9) + (a->data[49] << 7);
+	s1.data[17] = (a->data[49] >> 9) + (a->data[50] << 7);
+	s1.data[18] = (a->data[50] >> 9) + (a->data[51] << 7);
+	s1.data[19] = (a->data[51] >> 9) + (a->data[52] << 7);
+	s1.data[20] = (a->data[52] >> 9) + (a->data[53] << 7);
+	s1.data[21] = (a->data[53] >> 9) + (a->data[54] << 7);
+	s1.data[22] = (a->data[54] >> 9) + (a->data[55] << 7);
+	s1.data[23] = (a->data[55] >> 9) + (a->data[56] << 7);
+	s1.data[24] = (a->data[56] >> 9) + (a->data[57] << 7);
+	s1.data[25] = (a->data[57] >> 9) + (a->data[58] << 7);
+	s1.data[26] = (a->data[58] >> 9) + (a->data[59] << 7);
+	s1.data[27] = (a->data[59] >> 9) + (a->data[60] << 7);
+	s1.data[28] = (a->data[60] >> 9) + (a->data[61] << 7);
+	s1.data[29] = (a->data[61] >> 9) + (a->data[62] << 7);
+	s1.data[30] = (a->data[62] >> 9) + (a->data[63] << 7);
+	s1.data[31] = (a->data[63] >> 9) + (a->data[64] << 7);
+	s1.data[32] = (a->data[64] >> 9) + (a->data[65] << 7);
+	// s2 = (a520, ..., a2, a1, a0)
+	s2.data[0] = a->data[0];
+	s2.data[1] = a->data[1];
+	s2.data[2] = a->data[2];
+	s2.data[3] = a->data[3];
+	s2.data[4] = a->data[4];
+	s2.data[5] = a->data[5];
+	s2.data[6] = a->data[6];
+	s2.data[7] = a->data[7];
+	s2.data[8] = a->data[8] ;
+	s2.data[9] = a->data[9];
+	s2.data[10] = a->data[10];
+	s2.data[11] = a->data[11];
+	s2.data[12] = a->data[12];
+	s2.data[13] = a->data[13];
+	s2.data[14] = a->data[14];
+	s2.data[15] = a->data[15];
+	s2.data[16] = a->data[16];
+	s2.data[17] = a->data[17];
+	s2.data[18] = a->data[18];
+	s2.data[19] = a->data[19];
+	s2.data[20] = a->data[20];
+	s2.data[21] = a->data[21];
+	s2.data[22] = a->data[22];
+	s2.data[23] = a->data[23];
+	s2.data[24] = a->data[24];
+	s2.data[25] = a->data[25];
+	s2.data[26] = a->data[26];
+	s2.data[27] = a->data[27];
+	s2.data[28] = a->data[28];
+	s2.data[29] = a->data[29];
+	s2.data[30] = a->data[30];
+	s2.data[31] = a->data[31];
+	s2.data[32] = a->data[32] & 0x00000000000001ff;
+
+	// Debug info
+#ifdef _DEBUG
+	char * s1dump = GetString(33, 521, s1.data);
+	char * s2dump = GetString(33, 521, s2.data);
+	free(s1dump);
+	free(s2dump);
+#endif
+
+	// s1 + s2
+	Addition(red, &s1, &s2, field);
 
 #elif ARCHITECTURE_BITS == 64
 
@@ -3384,7 +3632,7 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 	s2.data[5] = a->data[5];
 	s2.data[6] = a->data[6];
 	s2.data[7] = a->data[7];
-	s2.data[8] = a->data[8] ;
+	s2.data[8] = a->data[8];
 	s2.data[9] = a->data[9];
 	s2.data[10] = a->data[10];
 	s2.data[11] = a->data[11];
