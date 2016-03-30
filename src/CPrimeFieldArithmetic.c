@@ -193,6 +193,13 @@ void FreeElement(element_t * element)
 	free(element->data);
 }
 
+//! Erase the memory of internal members of field
+void FreeField(field_t * field)
+{
+	FreeElement(&field->characteristics);
+	//FreeElement(&field->mu);
+}
+
 //! Checks if a is greater or equal than b
 //! \returns 1 if a is greater than or equal to b, 0 otherwise
 unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field)
@@ -317,6 +324,13 @@ void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
 			}
 		}
 	}
+}
+
+//! General modulo reduction
+//! Algorithm 2.14 [1]
+void BarrettReduction(element_t * red, element_t a, field_t * field)
+{
+	field->mu
 }
 
 //! Modified Barrett modulo reduction [2]
