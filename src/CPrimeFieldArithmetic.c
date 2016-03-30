@@ -172,6 +172,9 @@ void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics
 	field->characteristics.data = (chunk_t *)malloc(field->chunksNumber * (sizeof(chunk_t)));
 	// Write characteristic data
 	SetString(characteristics, field->chunksNumber, fieldBitSize, field->characteristics.data);
+	// Set muReady flag to zero (mu is used to compute barrett reduction)
+	field->muReady = 0;
+
 }
 
 //! Sets the specified value expressed via a hex string in the field element 
@@ -197,7 +200,11 @@ void FreeElement(element_t * element)
 void FreeField(field_t * field)
 {
 	FreeElement(&field->characteristics);
-	//FreeElement(&field->mu);
+	// If mu was initialized, free its memory 
+	if (field->muReady)
+	{
+		FreeElement(&field->mu);
+	}
 }
 
 //! Checks if a is greater or equal than b
@@ -330,7 +337,11 @@ void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
 //! Algorithm 2.14 [1]
 void BarrettReduction(element_t * red, element_t a, field_t * field)
 {
-	field->mu
+	if (!field->muReady)
+	{
+		float division = 0;
+		// field->mu = set such number to ceil(b^{2k} / m)
+	}
 }
 
 //! Modified Barrett modulo reduction [2]
