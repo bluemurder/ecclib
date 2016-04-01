@@ -335,12 +335,19 @@ void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
 
 //! General modulo reduction
 //! Algorithm 2.14 [1]
+//! http://cacr.uwaterloo.ca/hac/about/chap14.pdf
 void BarrettReduction(element_t * red, element_t a, field_t * field)
 {
 	if (!field->muReady)
 	{
 		float division = 0;
+		// k is the field size divided by b size
+		// m is the field char
+		// b = word size of the processor
+		// 
 		// field->mu = set such number to ceil(b^{2k} / m)
+		//...
+		field->muReady = 1;
 	}
 }
 
