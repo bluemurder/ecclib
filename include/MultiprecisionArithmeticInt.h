@@ -19,6 +19,12 @@
 /*!
 * \file MultiprecisionArithmetic.h
 * Header file for multiple precision positive integer arithmetic functions.
+*
+* References:
+* [1] D.E. Knuth, The Art of Computer Programming – Seminumerical Algorithms,
+* volume 2, Addison-Wesley, Reading, Massachusetts, 2nd edition, 1981.
+* [2] D. Hankerson, S. Vanstone, and A.J. Menezes. Guide to Elliptic Curve
+* Cryptography. Springer Professional Computing. Springer, 2004.
 */
 
 #ifndef MULTIPRECISIONARITHMETICINT_H
@@ -77,11 +83,23 @@ void InitNumber(mpnumber * number, unsigned int chunksNumber);
 //! Erase the memory of internal members of number
 void FreeNumber(mpnumber * number);
 
-//! Multiple precision addition algorithm
-//! 
-void MPAddition(mpnumber * sum, mpnumber * a, mpnumber * b);
+//! Sums up two chunks with carry
+void ChunksSum(
+	chunk * result,
+	unsigned int * carry,
+	chunk a,
+	chunk b,
+	unsigned int carryin);
 
-//! Long division algorithm [4], computing the quotient of a/b with the 
+//! Checks if a is equal to b
+//! \returns 1 if a is equal to b, 0 otherwise
+unsigned int MPEquals(mpnumber * a, mpnumber * b);
+
+//! Integer multiplication, product scanning form
+//! algorithm 2.10 [2]
+void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b);
+
+//! Long division algorithm [1], computing the quotient of a/b with the 
 //! corresponding remainder. 
 //! \param div The quotient
 //! \param rem The remainder
@@ -89,7 +107,7 @@ void MPAddition(mpnumber * sum, mpnumber * a, mpnumber * b);
 //! \param v The divisor
 void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v);
 
-//! Short division algorithm [4], computing the quotient of a/b with the 
+//! Short division algorithm [1], computing the quotient of a/b with the 
 //! corresponding remainder, with b as a single precision number.
 //! \param div The quotient
 //! \param rem The remainder

@@ -56,7 +56,7 @@ unsigned int testSumSub()
 	c.data[7];
 
 	InitElementByString(&desired, "00000000ff00", &field);
-	if (Equals(&c, &desired, &field) != 1)
+	if (PFEquals(&c, &desired, &field) != 1)
 	{
 		wprintf(L"\nSum over prime field test failed..\n");
 		return 0;
@@ -78,7 +78,7 @@ unsigned int testSumSub()
 	// Desired d = 0x000000000000ff02
 	FreeElement(&desired);
 	InitElementByString(&desired, "00000000ff02", &field);
-	if (Equals(&d, &desired, &field) != 1)
+	if (PFEquals(&d, &desired, &field) != 1)
 	{
 		wprintf(L"\nSubtraction over prime field test failed..\n");
 		return 0;
@@ -115,7 +115,7 @@ unsigned int testAssignment()
 
 	pfelement desired;
 	InitElementByString(&desired, "0000000000000000012", &field);
-	if (Equals(&n, &desired, &field) != 1)
+	if (PFEquals(&n, &desired, &field) != 1)
 	{
 		wprintf(L"\nAssignment over prime field test failed..\n");
 		return 0;
@@ -165,7 +165,7 @@ unsigned int testRedp192()
 	InitElementByString(&true_red, "221eb65a46fdedda74084effc1003c59fbc71293fa688b47", &field);
 
 	unsigned int retval = 0;
-	if (Equals(&reduced, &true_red, &field))
+	if (PFEquals(&reduced, &true_red, &field))
 	{
 		retval = 1; // success
 		wprintf(L"PASSED\n");
@@ -225,7 +225,7 @@ unsigned int testRedp224()
 	InitElementByString(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
 
 	unsigned int retval = 0;
-	if (Equals(&reduced, &true_red, &field))
+	if (PFEquals(&reduced, &true_red, &field))
 	{
 		retval = 1; // success
 		wprintf(L"PASSED\n");
@@ -285,7 +285,7 @@ unsigned int testRedp256()
 	InitElementByString(&true_red, "f1d27633742e39f0843c226ca2465d49ccd0f65af922bbc88bf97f3708699a28", &field);
 
 	unsigned int retval = 0;
-	if (Equals(&reduced, &true_red, &field))
+	if (PFEquals(&reduced, &true_red, &field))
 	{
 		retval = 1; // success
 		wprintf(L"PASSED\n");
@@ -344,7 +344,7 @@ unsigned int testRedp384()
 	InitElementByString(&true_red, "97239230b04efde94e7180bcea4088847553ac172dff706f9117f417266f798bc58c73a043728d88001fef7edcda715e", &field);
 
 	unsigned int retval = 0;
-	if (Equals(&reduced, &true_red, &field))
+	if (PFEquals(&reduced, &true_red, &field))
 	{
 		retval = 1; // success
 		wprintf(L"PASSED\n");
@@ -404,7 +404,7 @@ unsigned int testRedp521()
 	char * hexdump3 = GetString(field.chunksNumber, field.bits, &true_red);
 
 	unsigned int retval = 0;
-	if (Equals(&reduced, &true_red, &field))
+	if (PFEquals(&reduced, &true_red, &field))
 	{
 		retval = 1; // success
 		wprintf(L"PASSED\n");
@@ -422,6 +422,56 @@ unsigned int testRedp521()
 	return retval;
 }
 
+unsigned int testIntegerMul()
+{
+	unsigned int retval = 1;
+	wprintf(L"integer multiplication test...");
+
+	mpnumber a, b, result, desired;
+	InitNumberByString(&a, "10000000000000ffee5432", 35);
+	InitNumberByString(&b, "100000000000000000000002", 23);
+	InitNumberByString(&desired, "1ffdca864", 35 + 23);
+	InitNumberByString(&result, "0", 35 + 23);
+	MPIntegerMul(&result, &a, &b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&b);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
+	InitNumberByString(&a, "1a03", 16);
+	InitNumberByString(&b, "1234", 16);
+	InitNumberByString(&desired, "1d97e9c", 32);
+	InitNumberByString(&result, "0", 32);
+	MPIntegerMul(&result, &a, &b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&b);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
+	InitNumberByString(&a, "3743fc000accaa4fced", 87);
+	InitNumberByString(&b, "51666aeffeee1", 88);
+	InitNumberByString(&desired, "11929ee8614830a282555ef28439a24d", 87 + 88);
+	InitNumberByString(&result, "0", 87 + 88);
+	MPIntegerMul(&result, &a, &b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&b);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
+	if (retval)
+	{
+		wprintf(L"PASSED\n");
+	}
+	else
+	{
+		wprintf(L"failed\n");
+	}
+	return retval;
+}
+
 //! Main routine
 //! \return 0 if some tests failed, 1 if all ok
 int main()
@@ -434,6 +484,7 @@ int main()
 	result = result && testRedp256();
 	result = result && testRedp384();
 	result = result && testRedp521();
+	result = result && testIntegerMul();
 
 	return result;
 }

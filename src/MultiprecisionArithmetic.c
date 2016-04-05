@@ -145,7 +145,10 @@ char * GetString(
 	return hexdump;
 }
 
-void InitNumberByString(mpnumber * number, char * hexString, unsigned int bitSize)
+void InitNumberByString(
+	mpnumber * number,
+	char * hexString,
+	unsigned int bitSize)
 {
 	// Evaluate chunks number
 	number->size = bitSize / ARCHITECTURE_BITS;
@@ -202,13 +205,13 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	d = d - 1;
 	d = d / v->data[n - 1];
 	mpnumber normalizedu;
-	InitNumber(&normalizedu, m);
+	InitNumber(&normalizedu, m + 1);
 }
 
 void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
 {
 	// Short division requires that divisor presents only one data chunk. So 
-	// present algorithm takes care of only least significant chunk, ingnoring 
+	// present algorithm takes care of only least significant chunk, ignoring 
 	// possible other ones.
 	// Note that div and res must be previously allocated:
 	// div has same mpnumber size;
@@ -219,4 +222,97 @@ void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
 	//{
 	//	partial = a->data[j] - 
 	//}
+}
+
+void ChunksSum(
+	chunk * result,
+	unsigned int * carry,
+	chunk a,
+	chunk b,
+	unsigned int carryin)
+{
+	if (carryin)
+	{
+		*result = a + b + carryin;
+		*carry = (a >= *result);
+	}
+	else
+	{
+		*result = a + b;
+		*carry = (a > *result);
+	}
+}
+
+unsigned int MPEquals(mpnumber * a, mpnumber * b)
+{
+	if (a->size != b->size)
+	{
+		return 0;
+	}
+	unsigned int i;
+	for (i = 0; i < a->size; i++)
+	{
+		if (a->data[i] != b->data[i])
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
+{
+	unsigned int totalsize = a->size + b->size;
+	unsigned int i, j, k, carry;
+	chunk R0, R1, R2, U, V;
+	chunk m0, m1, m2;
+	chunk a0, a1, b0, b1;
+	R0 = R1 = R2 = 0;
+	for (k = 0; k < totalsize - 1; k++)
+	{
+		for (i = 0; i < a->size; i++)
+		{
+			for (j = 0; j < b->size; j++)
+			{
+				if (i + j == k)
+				{
+#if ARCHITECTURE_BITS == 8
+					a0 = 0x0f & a->data[i];
+					a1 = (0xf0 & a->data[i]) >> 4;
+					b0 = 0x0f & b->data[j];
+					b1 = (0xf0 & b->data[j]) >> 4;
+					V = a0 * b0;
+					m1 = a1 * b0;
+					m2 = a0 * b1;
+					U = a1 * b1;
+					// V += (sum of m1,m2 leftshifted by 4)
+					m0 = m1 + m2;
+					V = V + (m0 << 4);
+					// U += 1 if last sum included a carry
+					if (m0 & 0xf0)
+					{
+						U = U + 1;
+					}
+#elif ARCHITECTURE_BITS == 16
+
+#elif ARCHITECTURE_BITS == 64
+
+#else
+
+#endif
+					// c,R0 = sum(R0, V)
+					ChunksSum(&R0, &carry, R0, V, 0);
+					// c,R1 = sum(R1 + U + c)
+					ChunksSum(&R1, &carry, R1, U, carry);
+					// R2 = R2 + c
+					R2 = R2 + carry;
+				}
+			}
+		}
+		mul->data[k] = R0;
+		R0 = R1;
+		R1 = R2;
+		R2 = 0;
+	}
+	mul->data[totalsize - 1] = R0;
 }

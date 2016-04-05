@@ -101,7 +101,7 @@ typedef struct _pfproperties pfproperties;
 
 //! Checks if a is equal to b
 //! \returns 1 if a is equal to b, 0 otherwise
-unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field);
+unsigned int PFEquals(pfelement * a, pfelement * b, pfproperties * field);
 
 //! Checks if a is greater or equal than b.
 //! \returns 1 if a is greater than or equal to b, 0 otherwise

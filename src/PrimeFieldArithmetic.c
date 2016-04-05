@@ -27,7 +27,7 @@
 
 // Implementation
 
-unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field)
+unsigned int PFEquals(pfelement * a, pfelement * b, pfproperties * field)
 {
 	unsigned int i;
 	for (i = 0; i < field->chunksNumber; i++)
