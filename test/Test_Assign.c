@@ -28,7 +28,7 @@ int main()
 	pfproperties field;
 	InitFieldProperties(&field, 45, "1fffffffffff");
 	pfelement n;
-	InitElement(&n, "009000000000000000000000012", &field);
+	InitElementByString(&n, "009000000000000000000000012", &field);
 	n.data[0];
 	n.data[1];
 	n.data[2];

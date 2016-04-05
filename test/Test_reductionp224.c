@@ -54,13 +54,13 @@ int main()
 	char * hexdump = GetString(cnumber, 448, &a);
 
 	pfelement reduced;
-	InitElement(&reduced, "", &field);
+	InitElementByString(&reduced, "", &field);
 	FastReductionFIPSp224(&reduced, &a, &field);
 
 	char * hexdump2 = GetString(field.chunksNumber, field.bits, &reduced);
 
 	pfelement true_red;
-	InitElement(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
+	InitElementByString(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
 
 	int retval = 0;
 	if (Equals(&reduced, &true_red, &field))

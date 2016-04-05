@@ -112,7 +112,10 @@ typedef struct _pfproperties pfproperties;
 
 //! Checks if a is greater or equal than b.
 //! \returns 1 if a is greater than or equal to b, 0 otherwise
-unsigned int GreaterOrEqual(pfelement * a, pfelement * b, pfproperties * field);
+unsigned int GreaterOrEqual(
+	pfelement * a, 
+	pfelement * b, 
+	pfproperties * field);
 
 //! Checks if a is equal to b
 //! \returns 1 if a is equal to b, 0 otherwise
@@ -124,11 +127,11 @@ unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field);
 //! \param chunksNumber The number of chunks already allocated
 //! \param bitSize The size in bits of the underlying field
 //! \param element The finite field element to fill
-void SetString(
-	pfelement * element,
-	char * hexString, 
-	unsigned int chunksNumber,
-	unsigned int bitSize);
+//void SetString(
+//	pfelement * element,
+//	char * hexString, 
+//	unsigned int chunksNumber,
+//	unsigned int bitSize);
 
 //! Writes the hexdecimal value from hexString to element, strictly following 
 //! the specified bitsize
@@ -150,7 +153,10 @@ void SetString(
 //! \param element The prime field element
 //! \returns The hexadecimal representation string, remember to free such
 //! memory
-char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * element);
+//char * GetString(
+//	unsigned int chunksNumber,
+//	unsigned int bitSize, 
+//	pfelement * element);
 
 //! Give a string containing the hexadecimal representation of the number.
 //! This is not an efficient implementation, use only for debug purposes.
@@ -159,13 +165,19 @@ char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * el
 //! \param element The prime field element
 //! \returns The hexadecimal representation string, remember to free such
 //! memory
-char * GetString(unsigned int chunksNumber, unsigned int bitSize, mpnumber * number);
+char * GetString(
+	unsigned int chunksNumber,
+	unsigned int bitSize, 
+	mpnumber * number);
 
 //! Sets the specified bit size and characteristics in the field object
 //! \param field The field to fill (must point to already allocated memory)
 //! \param fieldBitSize The field bis size
 //! \param characteristics Hex string describing the field characteristics
-void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char * characteristics);
+void InitFieldProperties(
+	pfproperties * field,
+	unsigned int fieldBitSize, 
+	char * characteristics);
 
 //! Sets the specified value expressed via a hex string in the field element 
 //! object. Needs the presence of a pfproperties object storing field bitsize, 
@@ -173,15 +185,21 @@ void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char *
 //! \param element The target element to write
 //! \param hexString The string value to write
 //! \param field The object storing field data
-void InitElement(pfelement * element, char * hexString, pfproperties * field);
+void InitElementByString(pfelement * element, char * hexString, pfproperties * field);
 
 //! Sets the specified value expressed via a hex string in the number.
-//! Needs the presence of a pfproperties object storing field bitsize, 
-//! chunks number and characteristics.
-//! \param element The target element to write
+//! \param number The target element to write
 //! \param hexString The string value to write
-//! \param field The object storing field data
-void InitNumber(mpnumber * number, char * hexString, pfproperties * field);
+//! \param bitSize Size in bits of number
+void InitNumberByString(
+	mpnumber * number,
+	char * hexString,
+	unsigned int bitSize);
+
+//! Initialize memory of specified number.
+//! \param number The target element to write
+//! \param chunksNumber Chunks number
+void InitNumber(mpnumber * number, unsigned int chunksNumber);
 
 //! Erase the memory of internal members of element
 void FreeElement(pfelement * element);
@@ -195,28 +213,51 @@ void FreeFieldProperties(pfproperties * field);
 //! Addition of a and b over a prime field. Let p the field characteristics, 
 //! the method evaluates a+b(mod p)
 //! Algorithm 2.7 [1]
-void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * field);
+void Addition(
+	pfelement * sum,
+	pfelement * a, 
+	pfelement * b,
+	pfproperties * field);
 
 //! Subtraction of b from a over a prime field. Let p the field 
 //! characteristics, the method evaluates a-b(mod p)
 //! Algorithm 2.8 [1]
-void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * field);
+void Subtraction(
+	pfelement * sub, 
+	pfelement * a, 
+	pfelement * b,
+	pfproperties * field);
 
 //! Multiplication of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates ab(mod p)
-void Multiplication(pfelement * mul, pfelement * a, pfelement * b, pfproperties * field);
+void Multiplication(
+	pfelement * mul, 
+	pfelement * a, 
+	pfelement * b, 
+	pfproperties * field);
 
 //! Division of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates a/b(mod p)
-void Division(pfelement * div, pfelement * a, pfelement * b, pfproperties * field);
+void Division(
+	pfelement * div, 
+	pfelement * a, 
+	pfelement * b, 
+	pfproperties * field);
 
 //! Long division algorithm [4], computing the quotient of a/b with the 
 //! corresponding remainder. 
-void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
+//! \param div The quotient
+//! \param rem The remainder
+//! \param u The dividend
+//! \param v The divisor
+void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v);
 
 //! Short division algorithm [4], computing the quotient of a/b with the 
 //! corresponding remainder, with b as a single precision number.
-//! \param a The divisor (chunks array)
+//! \param div The quotient
+//! \param rem The remainder
+//! \param a The dividend
+//! \param b The divisor
 void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
 
 //! General modulo reduction
@@ -225,28 +266,46 @@ void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
 void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field);
 
 //! Modified Barrett modulo reduction [2]
-void ModifiedBarretReduction(pfelement * red, mpnumber * a, pfproperties * field);
+void ModifiedBarretReduction(
+	pfelement * red,
+	mpnumber * a, 
+	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^192 − 2^64 − 1 (FIPS 186-4 prime)
 //! Algorithm 2.27 [1]
-void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field);
+void FastReductionFIPSp192(
+	pfelement * red, 
+	pfelement * a, 
+	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^224 − 2^96 + 1 (FIPS 186-4 prime)
 //! Algorithm 2.28 [1]
-void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field);
+void FastReductionFIPSp224(
+	pfelement * red, 
+	pfelement * a,
+	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^256 - 2^224 + 2^192 + 2^96 - 1 
 //! (FIPS 186-4 prime)
 //! Algorithm 2.29 [1]
-void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field);
+void FastReductionFIPSp256(
+	pfelement * red, 
+	pfelement * a,
+	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^384 - 2^128 - 2^96 + 2^32 - 1 
 //! (FIPS 186-4 prime)
 //! Algorithm 2.30 [1]
-void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field);
+void FastReductionFIPSp384(
+	pfelement * red, 
+	pfelement * a, 
+	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^521 - 1 (FIPS 186-4 prime)
 //! Algorithm 2.31 [1]
-void FastReductionFIPSp521(pfelement * red, pfelement * a, pfproperties * field);
+void FastReductionFIPSp521(
+	pfelement * red, 
+	pfelement * a, 
+	pfproperties * field);
 
 #endif // CPRIMEFIELFARITHMETICINT_H

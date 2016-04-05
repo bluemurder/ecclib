@@ -42,7 +42,7 @@ int main()
 	a.data[10];
 
 	pfelement reduced;
-	InitElement(&reduced, "", &field);
+	InitElementByString(&reduced, "", &field);
 	FastReductionFIPSp192(&reduced, &a, &field);
 
 	char * hexdump2 = GetString(field.chunksNumber, field.bits, &reduced);
@@ -55,7 +55,7 @@ int main()
 	reduced.data[5];
 
 	pfelement true_red;
-	InitElement(&true_red, "221eb65a46fdedda74084effc1003c59fbc71293fa688b47", &field);
+	InitElementByString(&true_red, "221eb65a46fdedda74084effc1003c59fbc71293fa688b47", &field);
 
 	int retval = 0;
 	if (Equals(&reduced, &true_red, &field))

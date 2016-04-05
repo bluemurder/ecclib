@@ -28,11 +28,11 @@ int main()
 	pfproperties field;
 	InitFieldProperties(&field, 45, "1fffffffffff");
 	pfelement a;
-	InitElement(&a, "009000000000000000000ff01", &field);
+	InitElementByString(&a, "009000000000000000000ff01", &field);
 	pfelement b;
-	InitElement(&b, "1ffffffffffe", &field);
+	InitElementByString(&b, "1ffffffffffe", &field);
 	pfelement c;
-	InitElement(&c, "0", &field);
+	InitElementByString(&c, "0", &field);
 	Addition(&c, &a, &b, &field);
 
 	b.data[0];
@@ -54,7 +54,7 @@ int main()
 	// Desired c = 0x000000000000ff00
 
 	pfelement d;
-	InitElement(&d, "0", &field);
+	InitElementByString(&d, "0", &field);
 	Subtraction(&d, &a, &b, &field);
 
 	d.data[0];

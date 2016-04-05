@@ -16,7 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-//! \file CPrimeFieldArithmetic.c Definitions for CPrimeFieldArithmetic library methods.
+//! \file CPrimeFieldArithmetic.c Definitions for CPrimeFieldArithmetic library
+//! methods.
 
 #include "../include/CPrimeFieldArithmeticInt.h"
 #include <malloc.h>
@@ -27,7 +28,7 @@
 // Implementation
 
 void SetString(
-	pfelement * element,
+	mpnumber * number,
 	char * hexString,
 	unsigned int chunksNumber,
 	unsigned int bitSize)
@@ -47,8 +48,11 @@ void SetString(
 	// For every chunk
 	for (i = 0; i < chunksNumber; i++)
 	{
-		element->data[i] = 0;
-		for (j = 0; (j < maxChunkCharacters && readstring == 1); j++, charactersCounter++, bitsCounter += 4)
+		number->data[i] = 0;
+		for (
+			j = 0;
+			(j < maxChunkCharacters && readstring == 1);
+		j++, charactersCounter++, bitsCounter += 4)
 		{
 			// Numbers
 			if (*stringCursor > 47 && *stringCursor < 58)
@@ -92,7 +96,7 @@ void SetString(
 			// Shift when reading higher chunk bits
 			value = value << (4 * j);
 			// Sum to current chunk integer
-			element->data[i] += value;
+			number->data[i] += value;
 			// If input string with no more characters, exit
 			if (charactersCounter + 1 == hexStringLen)
 			{
@@ -104,16 +108,10 @@ void SetString(
 	}
 }
 
-//void SetString(
-//	mpnumber * number,
-//	char * hexString,
-//	unsigned int chunksNumber,
-//	unsigned int bitSize)
-//{
-//	SetString((pfelement *)number, hexString, chunksNumber, bitSize);
-//}
-
-char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * element)
+char * GetString(
+	unsigned int chunksNumber,
+	unsigned int bitSize,
+	mpnumber * number)
 {
 	unsigned int characters = bitSize / 4;
 	if (bitSize % 4)
@@ -137,7 +135,7 @@ char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * el
 			}
 			//chunk = data[c] & (0x0f << (4 * i));
 			//chunk = chunk >> (4 * i);
-			chunk = element->data[c] >> (4 * i);
+			chunk = number->data[c] >> (4 * i);
 			chunk = chunk & 0x0f;
 			if (chunk < 10)
 			{
@@ -152,7 +150,10 @@ char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * el
 	return hexdump;
 }
 
-void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char * characteristics)
+void InitFieldProperties(
+	pfproperties * field,
+	unsigned int fieldBitSize,
+	char * characteristics)
 {
 	// Assign field bits
 	field->bits = fieldBitSize;
@@ -163,10 +164,15 @@ void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char *
 		field->chunksNumber++;
 	}
 	// Allocate characteristics data
-	field->characteristics.data = (chunk *)malloc(field->chunksNumber * (sizeof(chunk)));
+	field->characteristics.data =
+		(chunk *)malloc(field->chunksNumber * (sizeof(chunk)));
 	// Write characteristics data
 	field->characteristics.size = field->chunksNumber;
-	SetString(&field->characteristics, characteristics, field->chunksNumber, fieldBitSize);
+	SetString(
+		&field->characteristics,
+		characteristics,
+		field->chunksNumber,
+		fieldBitSize);
 	// Precompute some data required by Barret reduction algorithm
 	// k = chunks number of field characteristics
 	// b = close to word size
@@ -174,7 +180,7 @@ void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char *
 	// @@ TODO
 }
 
-void InitElement(pfelement * element, char * hexString, pfproperties * field)
+void InitElementByString(pfelement * element, char * hexString, pfproperties * field)
 {
 	element->data = (chunk *)malloc(field->chunksNumber * (sizeof(chunk)));
 	element->size = field->chunksNumber;
@@ -182,9 +188,26 @@ void InitElement(pfelement * element, char * hexString, pfproperties * field)
 	SetString(element, hexString, field->chunksNumber, field->bits);
 }
 
-void InitNumber(mpnumber * number, char * hexString, pfproperties * field)
+void InitNumberByString(mpnumber * number, char * hexString, unsigned int bitSize)
 {
-	InitElement((pfelement *)number, hexString, field);
+	// Evaluate chunks number
+	number->size = bitSize / ARCHITECTURE_BITS;
+	if (bitSize % ARCHITECTURE_BITS)
+	{
+		number->size++;
+	}
+	// Allocate memory
+	number->data = (chunk *)malloc(number->size * (sizeof(chunk)));
+	// Write value
+	SetString(number, hexString, number->size, bitSize);
+}
+
+void InitNumber(mpnumber * number, unsigned int chunksNumber)
+{
+	// Write chunks number
+	number->size = chunksNumber;
+	// Allocate memory
+	number->data = (chunk *)malloc(number->size * (sizeof(chunk)));
 }
 
 void FreeElement(pfelement * element)
@@ -236,7 +259,11 @@ unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field)
 	return 1;
 }
 
-void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * field)
+void Addition(
+	pfelement * sum,
+	pfelement * a,
+	pfelement * b,
+	pfproperties * field)
 {
 	// Binary sum
 	unsigned int carry = 0;
@@ -265,7 +292,9 @@ void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * fiel
 			if (borrow)
 			{
 				firstOperand = sum->data[i];
-				sum->data[i] = sum->data[i] - field->characteristics.data[i] - borrow;
+				sum->data[i] = sum->data[i] -
+					field->characteristics.data[i] -
+					borrow;
 				borrow = (sum->data[i] >= firstOperand);
 			}
 			else
@@ -278,7 +307,11 @@ void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * fiel
 	}
 }
 
-void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * field)
+void Subtraction(
+	pfelement * sub,
+	pfelement * a,
+	pfelement * b,
+	pfproperties * field)
 {
 	// Binary subtraction
 	unsigned int carry = 0;
@@ -306,7 +339,9 @@ void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * f
 			if (carry)
 			{
 				firstOperand = sub->data[i];
-				sub->data[i] = sub->data[i] + field->characteristics.data[i] + carry;
+				sub->data[i] = sub->data[i] +
+					field->characteristics.data[i] +
+					carry;
 				carry = (sub->data[i] <= firstOperand);
 			}
 			else
@@ -319,26 +354,73 @@ void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * f
 	}
 }
 
-void Multiplication(pfelement * mul, pfelement * a, pfelement * b, pfproperties * field)
+void Multiplication(
+	pfelement * mul,
+	pfelement * a,
+	pfelement * b,
+	pfproperties * field)
 {
 	// Call to proper multiplication algorithm
 	// Call to proper modulo reduction algorithm
 }
 
-void Division(pfelement * div, pfelement * a, pfelement * b, pfproperties * field)
+void Division(
+	pfelement * div,
+	pfelement * a,
+	pfelement * b,
+	pfproperties * field)
 {
 	// Call to proper modular inversion algorithm
 	// Call to Multiplication()
 }
 
-void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
+void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 {
-	//if ()
+	// Note that div and res must be previously allocated:
+
+	// Evaluation of number dimensions
+	unsigned int i, m, n;
+	for (i = v->size - 1;; i--)
+	{
+		if (i == 0 || v->data[i] == 0)
+		{
+			break;
+		}
+	}
+	n = i + 1;
+	// Now n is the number of not null chunks of v
+	m = n;
+	for (i = u->size - 1;; i--)
+	{
+		if (i == 0 || u->data[i] == 0)
+		{
+			break;
+		}
+	}
+	m = i + 1;
+	// Now m is the index to most significant not null chunk of u
+	// Normalize phase (Knuth)
+	chunk d = 0;
+	d = d - 1;
+	d = d / v->data[n - 1];
+	mpnumber normalizedu;
+	InitNumber(&normalizedu, m);
 }
 
 void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
 {
-	//
+	// Short division requires that divisor presents only one data chunk. So 
+	// present algorithm takes care of only least significant chunk, ingnoring 
+	// possible other ones.
+	// Note that div and res must be previously allocated:
+	// div has same mpnumber size;
+	// rem has size 1
+	//unsigned int i,j;
+	//chunk partial;
+	//for (i = 0,j=a->size-1; i < a->size; i++,j--)
+	//{
+	//	partial = a->data[j] - 
+	//}
 }
 
 void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field)
@@ -346,13 +428,18 @@ void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field)
 	//
 }
 
-
-void ModifiedBarretReduction(pfelement * red, mpnumber * a, pfproperties * field)
+void ModifiedBarretReduction(
+	pfelement * red,
+	mpnumber * a,
+	pfproperties * field)
 {
 
 }
 
-void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
+void FastReductionFIPSp192(
+	pfelement * red,
+	pfelement * a,
+	pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
@@ -485,8 +572,8 @@ void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -580,8 +667,8 @@ void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -639,8 +726,8 @@ void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -710,8 +797,8 @@ void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -908,8 +995,8 @@ void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1031,8 +1118,8 @@ void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1104,8 +1191,8 @@ void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1192,8 +1279,8 @@ void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1558,8 +1645,8 @@ void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -1781,8 +1868,8 @@ void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -1896,8 +1983,8 @@ void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -2047,8 +2134,8 @@ void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -2616,8 +2703,8 @@ void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -2940,8 +3027,8 @@ void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -3084,8 +3171,8 @@ void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -3288,8 +3375,8 @@ void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field)
 #endif
 
 	// Allocate space for sum results
-	InitElement(&partialres1, "", field);
-	InitElement(&partialres2, "", field);
+	InitElementByString(&partialres1, "", field);
+	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
