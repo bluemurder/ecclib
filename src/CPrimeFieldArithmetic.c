@@ -16,19 +16,27 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-//! \file CPrimeFieldArithmetic.c Definitions for current library methods.
+//! \file CPrimeFieldArithmetic.c Definitions for CPrimeFieldArithmetic library methods.
 
 #include "../include/CPrimeFieldArithmeticInt.h"
 #include <malloc.h>
 #include <string.h>
 
-void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize, chunk_t * data)
+// Prototypes
+
+// Implementation
+
+void SetString(
+	pfelement * element,
+	char * hexString,
+	unsigned int chunksNumber,
+	unsigned int bitSize)
 {
 	size_t hexStringLen = strlen(hexString);
 	char * stringCursor = hexString + hexStringLen - 1;
 	size_t i, j;
 	unsigned int maxChunkCharacters = ARCHITECTURE_BITS / 4;
-	chunk_t value;
+	chunk value;
 	unsigned char readstring = 1;
 	if (hexStringLen == 0)
 	{
@@ -39,7 +47,7 @@ void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize
 	// For every chunk
 	for (i = 0; i < chunksNumber; i++)
 	{
-		data[i] = 0;
+		element->data[i] = 0;
 		for (j = 0; (j < maxChunkCharacters && readstring == 1); j++, charactersCounter++, bitsCounter += 4)
 		{
 			// Numbers
@@ -84,7 +92,7 @@ void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize
 			// Shift when reading higher chunk bits
 			value = value << (4 * j);
 			// Sum to current chunk integer
-			data[i] += value;
+			element->data[i] += value;
 			// If input string with no more characters, exit
 			if (charactersCounter + 1 == hexStringLen)
 			{
@@ -96,7 +104,16 @@ void SetString(char * hexString, unsigned int chunksNumber, unsigned int bitSize
 	}
 }
 
-char * GetString(unsigned int chunksNumber, unsigned int bitSize, chunk_t * data)
+//void SetString(
+//	mpnumber * number,
+//	char * hexString,
+//	unsigned int chunksNumber,
+//	unsigned int bitSize)
+//{
+//	SetString((pfelement *)number, hexString, chunksNumber, bitSize);
+//}
+
+char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * element)
 {
 	unsigned int characters = bitSize / 4;
 	if (bitSize % 4)
@@ -109,7 +126,7 @@ char * GetString(unsigned int chunksNumber, unsigned int bitSize, chunk_t * data
 	// Null termination
 	hexdump[characters] = 0;
 	unsigned int charCounter = 0;
-	chunk_t chunk;
+	chunk chunk;
 	for (unsigned int c = 0; c < chunksNumber; c++)
 	{
 		for (unsigned int i = 0; i < chunkCharacters; i++, charCounter++)
@@ -120,22 +137,22 @@ char * GetString(unsigned int chunksNumber, unsigned int bitSize, chunk_t * data
 			}
 			//chunk = data[c] & (0x0f << (4 * i));
 			//chunk = chunk >> (4 * i);
-			chunk = data[c] >> (4 * i);
+			chunk = element->data[c] >> (4 * i);
 			chunk = chunk & 0x0f;
 			if (chunk < 10)
 			{
-				hexdump[characters - 1 - charCounter] = chunk + 48;
+				hexdump[characters - 1 - charCounter] = (char)chunk + 48;
 			}
 			else
 			{
-				hexdump[characters - 1 - charCounter] = chunk + 65 - 10;
+				hexdump[characters - 1 - charCounter] = (char)chunk + 65 - 10;
 			}
 		}
 	}
 	return hexdump;
 }
 
-void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics)
+void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char * characteristics)
 {
 	// Assign field bits
 	field->bits = fieldBitSize;
@@ -145,41 +162,48 @@ void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics
 	{
 		field->chunksNumber++;
 	}
-	// Allocate characteristic data
-	field->characteristics.data = (chunk_t *)malloc(field->chunksNumber * (sizeof(chunk_t)));
-	// Write characteristic data
-	SetString(characteristics, field->chunksNumber, fieldBitSize, field->characteristics.data);
-	// Set muReady flag to zero (mu is used to compute barrett reduction)
-	field->muReady = 0;
-
+	// Allocate characteristics data
+	field->characteristics.data = (chunk *)malloc(field->chunksNumber * (sizeof(chunk)));
+	// Write characteristics data
+	field->characteristics.size = field->chunksNumber;
+	SetString(&field->characteristics, characteristics, field->chunksNumber, fieldBitSize);
+	// Precompute some data required by Barret reduction algorithm
+	// k = chunks number of field characteristics
+	// b = close to word size
+	// mu = floor(b^{2k} / char)
+	// @@ TODO
 }
 
-void SetElement(element_t * element, char * hexString, field_t * field)
+void InitElement(pfelement * element, char * hexString, pfproperties * field)
 {
-	element->data = (chunk_t *)malloc(field->chunksNumber * (sizeof(chunk_t)));
+	element->data = (chunk *)malloc(field->chunksNumber * (sizeof(chunk)));
+	element->size = field->chunksNumber;
 	// Write characteristic data
-	SetString(hexString, field->chunksNumber, field->bits, element->data);
+	SetString(element, hexString, field->chunksNumber, field->bits);
 }
 
-void FreeElement(element_t * element)
+void InitNumber(mpnumber * number, char * hexString, pfproperties * field)
+{
+	InitElement((pfelement *)number, hexString, field);
+}
+
+void FreeElement(pfelement * element)
 {
 	free(element->data);
 }
 
-
-void FreeField(field_t * field)
+void FreeNumber(mpnumber * number)
 {
-	FreeElement(&field->characteristics);
-	// If mu was initialized, free its memory 
-	if (field->muReady)
-	{
-		FreeElement(&field->mu);
-	}
+	free(number->data);
 }
 
-//! Checks if a is greater or equal than b
-//! \returns 1 if a is greater than or equal to b, 0 otherwise
-unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field)
+void FreeFieldProperties(pfproperties * field)
+{
+	FreeNumber(&field->characteristics);
+	//FreeNumber(&field->mu); // TODO
+}
+
+unsigned int GreaterOrEqual(pfelement * a, pfelement * b, pfproperties * field)
 {
 	unsigned int i;
 	for (i = field->chunksNumber - 1;; i--)
@@ -199,9 +223,7 @@ unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field)
 	}
 }
 
-//! Checks if a is equal to b
-//! \returns 1 if a is equal to b, 0 otherwise
-unsigned int Equals(element_t * a, element_t * b, field_t * field)
+unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field)
 {
 	unsigned int i;
 	for (i = 0; i < field->chunksNumber; i++)
@@ -214,12 +236,12 @@ unsigned int Equals(element_t * a, element_t * b, field_t * field)
 	return 1;
 }
 
-void Addition(element_t * sum, element_t * a, element_t * b, field_t * field)
+void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * field)
 {
 	// Binary sum
-	chunk_t carry = 0;
-	chunk_t borrow = 0;
-	chunk_t firstOperand;
+	unsigned int carry = 0;
+	unsigned int borrow = 0;
+	chunk firstOperand;
 	unsigned int i;
 	unsigned int equals = 1;
 	for (i = 0; i < field->chunksNumber; i++)
@@ -256,12 +278,12 @@ void Addition(element_t * sum, element_t * a, element_t * b, field_t * field)
 	}
 }
 
-void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
+void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * field)
 {
 	// Binary subtraction
-	chunk_t carry = 0;
-	chunk_t borrow = 0;
-	chunk_t firstOperand;
+	unsigned int carry = 0;
+	unsigned int borrow = 0;
+	chunk firstOperand;
 	unsigned int i;
 	for (i = 0; i < field->chunksNumber; i++)
 	{
@@ -297,42 +319,55 @@ void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field)
 	}
 }
 
-void BarrettReduction(element_t * red, element_t a, field_t * field)
+void Multiplication(pfelement * mul, pfelement * a, pfelement * b, pfproperties * field)
 {
-	if (!field->muReady)
-	{
-		float division = 0;
-		// k is the field size divided by b size
-		// m is the field char
-		// b = word size of the processor
-		// 
-		// field->mu = set such number to ceil(b^{2k} / m)
-		//...
-		field->muReady = 1;
-	}
+	// Call to proper multiplication algorithm
+	// Call to proper modulo reduction algorithm
 }
 
-void ModifiedBarretReduction(element_t * red, element_t a, field_t * field)
+void Division(pfelement * div, pfelement * a, pfelement * b, pfproperties * field)
+{
+	// Call to proper modular inversion algorithm
+	// Call to Multiplication()
+}
+
+void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
+{
+	//if ()
+}
+
+void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
+{
+	//
+}
+
+void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field)
+{
+	//
+}
+
+
+void ModifiedBarretReduction(pfelement * red, mpnumber * a, pfproperties * field)
 {
 
 }
 
-void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
+void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
 	// Note that a presents 48 chunks
 
-	element_t s1, s2, s3, s4, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[24]; // 8 * 24 = 192
+	chunk s1data[24]; // 8 * 24 = 192
 	s1.data = s1data;
-	chunk_t s2data[24];
+	chunk s2data[24];
 	s2.data = s2data;
-	chunk_t s3data[24];
+	chunk s3data[24];
 	s3.data = s3data;
-	chunk_t s4data[24];
+	chunk s4data[24];
 	s4.data = s4data;
 
 	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
@@ -439,10 +474,10 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(24, 192, s1.data);
-	char * s2dump = GetString(24, 192, s2.data);
-	char * s3dump = GetString(24, 192, s3.data);
-	char * s4dump = GetString(24, 192, s4.data);
+	char * s1dump = GetString(24, 192, &s1);
+	char * s2dump = GetString(24, 192, &s2);
+	char * s3dump = GetString(24, 192, &s3);
+	char * s4dump = GetString(24, 192, &s4);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -450,8 +485,8 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -466,16 +501,16 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 24 chunks
 
-	element_t s1, s2, s3, s4, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[12]; // 16 * 12 = 192
+	chunk s1data[12]; // 16 * 12 = 192
 	s1.data = s1data;
-	chunk_t s2data[12];
+	chunk s2data[12];
 	s2.data = s2data;
-	chunk_t s3data[12];
+	chunk s3data[12];
 	s3.data = s3data;
-	chunk_t s4data[12];
+	chunk s4data[12];
 	s4.data = s4data;
 
 	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
@@ -534,10 +569,10 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(12, 192, s1.data);
-	char * s2dump = GetString(12, 192, s2.data);
-	char * s3dump = GetString(12, 192, s3.data);
-	char * s4dump = GetString(12, 192, s4.data);
+	char * s1dump = GetString(12, 192, &s1);
+	char * s2dump = GetString(12, 192, &s2);
+	char * s3dump = GetString(12, 192, &s3);
+	char * s4dump = GetString(12, 192, &s4);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -545,8 +580,8 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -561,16 +596,16 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 6 chunks
 
-	element_t s1, s2, s3, s4, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[3]; // 64 * 3 = 192
+	chunk s1data[3]; // 64 * 3 = 192
 	s1.data = s1data;
-	chunk_t s2data[3];
+	chunk s2data[3];
 	s2.data = s2data;
-	chunk_t s3data[3];
+	chunk s3data[3];
 	s3.data = s3data;
-	chunk_t s4data[3];
+	chunk s4data[3];
 	s4.data = s4data;
 
 	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
@@ -593,10 +628,10 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(3, 192, s1.data);
-	char * s2dump = GetString(3, 192, s2.data);
-	char * s3dump = GetString(3, 192, s3.data);
-	char * s4dump = GetString(3, 192, s4.data);
+	char * s1dump = GetString(3, 192, &s1);
+	char * s2dump = GetString(3, 192, &s2);
+	char * s3dump = GetString(3, 192, &s3);
+	char * s4dump = GetString(3, 192, &s4);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -604,8 +639,8 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -620,16 +655,16 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 12 chunks
 
-	element_t s1, s2, s3, s4, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[6]; // 32 * 6 = 192
+	chunk s1data[6]; // 32 * 6 = 192
 	s1.data = s1data;
-	chunk_t s2data[6];
+	chunk s2data[6];
 	s2.data = s2data;
-	chunk_t s3data[6];
+	chunk s3data[6];
 	s3.data = s3data;
-	chunk_t s4data[6];
+	chunk s4data[6];
 	s4.data = s4data;
 
 	// Assuming a = (a5,a4,a3,a2,a1,a0) (64-bit chunks)
@@ -664,10 +699,10 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(6, 192, s1.data);
-	char * s2dump = GetString(6, 192, s2.data);
-	char * s3dump = GetString(6, 192, s3.data);
-	char * s4dump = GetString(6, 192, s4.data);
+	char * s1dump = GetString(6, 192, &s1);
+	char * s2dump = GetString(6, 192, &s2);
+	char * s3dump = GetString(6, 192, &s3);
+	char * s4dump = GetString(6, 192, &s4);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -675,8 +710,8 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
 	Addition(&partialres1, &s1, &s2, field);
@@ -690,24 +725,24 @@ void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field)
 #endif
 }
 
-void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
+void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
 	// Note that a presents 56 chunks
 
-	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[28]; // 8 * 28 = 224
+	chunk s1data[28]; // 8 * 28 = 224
 	s1.data = s1data;
-	chunk_t s2data[28];
+	chunk s2data[28];
 	s2.data = s2data;
-	chunk_t s3data[28];
+	chunk s3data[28];
 	s3.data = s3data;
-	chunk_t s4data[28];
+	chunk s4data[28];
 	s4.data = s4data;
-	chunk_t s5data[28];
+	chunk s5data[28];
 	s5.data = s5data;
 
 	// Assuming a = (a13,...,a0) (32-bit chunks)
@@ -859,11 +894,11 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(28, 224, s1.data);
-	char * s2dump = GetString(28, 224, s2.data);
-	char * s3dump = GetString(28, 224, s3.data);
-	char * s4dump = GetString(28, 224, s4.data);
-	char * s5dump = GetString(28, 224, s5.data);
+	char * s1dump = GetString(28, 224, &s1);
+	char * s2dump = GetString(28, 224, &s2);
+	char * s3dump = GetString(28, 224, &s3);
+	char * s4dump = GetString(28, 224, &s4);
+	char * s5dump = GetString(28, 224, &s5);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -873,8 +908,8 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -890,18 +925,18 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 28 chunks
 
-	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[14]; // 16 * 14 = 224
+	chunk s1data[14]; // 16 * 14 = 224
 	s1.data = s1data;
-	chunk_t s2data[14];
+	chunk s2data[14];
 	s2.data = s2data;
-	chunk_t s3data[14];
+	chunk s3data[14];
 	s3.data = s3data;
-	chunk_t s4data[14];
+	chunk s4data[14];
 	s4.data = s4data;
-	chunk_t s5data[14];
+	chunk s5data[14];
 	s5.data = s5data;
 
 	// Assuming a = (a13,...,a0) (32-bit chunks)
@@ -983,11 +1018,11 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(14, 224, s1.data);
-	char * s2dump = GetString(14, 224, s2.data);
-	char * s3dump = GetString(14, 224, s3.data);
-	char * s4dump = GetString(14, 224, s4.data);
-	char * s5dump = GetString(14, 224, s5.data);
+	char * s1dump = GetString(14, 224, &s1);
+	char * s2dump = GetString(14, 224, &s2);
+	char * s3dump = GetString(14, 224, &s3);
+	char * s4dump = GetString(14, 224, &s4);
+	char * s5dump = GetString(14, 224, &s5);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -996,8 +1031,8 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1013,18 +1048,18 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 7 chunks
 
-	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[4]; // 64 * 4 contains 224
+	chunk s1data[4]; // 64 * 4 contains 224
 	s1.data = s1data;
-	chunk_t s2data[4];
+	chunk s2data[4];
 	s2.data = s2data;
-	chunk_t s3data[4];
+	chunk s3data[4];
 	s3.data = s3data;
-	chunk_t s4data[4];
+	chunk s4data[4];
 	s4.data = s4data;
-	chunk_t s5data[4];
+	chunk s5data[4];
 	s5.data = s5data;
 
 	// Assuming a = (a13,...,a0) (32-bit chunks)
@@ -1056,11 +1091,11 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(7, 224, s1.data);
-	char * s2dump = GetString(7, 224, s2.data);
-	char * s3dump = GetString(7, 224, s3.data);
-	char * s4dump = GetString(7, 224, s4.data);
-	char * s5dump = GetString(7, 224, s5.data);
+	char * s1dump = GetString(7, 224, &s1);
+	char * s2dump = GetString(7, 224, &s2);
+	char * s3dump = GetString(7, 224, &s3);
+	char * s4dump = GetString(7, 224, &s4);
+	char * s5dump = GetString(7, 224, &s5);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -1069,8 +1104,8 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1086,18 +1121,18 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 14 chunks
 
-	element_t s1, s2, s3, s4, s5, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[7]; // 32 * 7 = 224
+	chunk s1data[7]; // 32 * 7 = 224
 	s1.data = s1data;
-	chunk_t s2data[7];
+	chunk s2data[7];
 	s2.data = s2data;
-	chunk_t s3data[7];
+	chunk s3data[7];
 	s3.data = s3data;
-	chunk_t s4data[7];
+	chunk s4data[7];
 	s4.data = s4data;
-	chunk_t s5data[7];
+	chunk s5data[7];
 	s5.data = s5data;
 
 	// Assuming a = (a13,...,a0) (32-bit chunks)
@@ -1144,11 +1179,11 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(7, 224, s1.data);
-	char * s2dump = GetString(7, 224, s2.data);
-	char * s3dump = GetString(7, 224, s3.data);
-	char * s4dump = GetString(7, 224, s4.data);
-	char * s5dump = GetString(7, 224, s5.data);
+	char * s1dump = GetString(7, 224, &s1);
+	char * s2dump = GetString(7, 224, &s2);
+	char * s3dump = GetString(7, 224, &s3);
+	char * s4dump = GetString(7, 224, &s4);
+	char * s5dump = GetString(7, 224, &s5);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -1157,8 +1192,8 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
 	Addition(&partialres1, &s1, &s2, field);
@@ -1173,32 +1208,32 @@ void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field)
 #endif
 }
 
-void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
+void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
 	// Note that a presents 64 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[32]; // 8 * 32 = 256
+	chunk s1data[32]; // 8 * 32 = 256
 	s1.data = s1data;
-	chunk_t s2data[32];
+	chunk s2data[32];
 	s2.data = s2data;
-	chunk_t s3data[32];
+	chunk s3data[32];
 	s3.data = s3data;
-	chunk_t s4data[32];
+	chunk s4data[32];
 	s4.data = s4data;
-	chunk_t s5data[32];
+	chunk s5data[32];
 	s5.data = s5data;
-	chunk_t s6data[32];
+	chunk s6data[32];
 	s6.data = s6data;
-	chunk_t s7data[32];
+	chunk s7data[32];
 	s7.data = s7data;
-	chunk_t s8data[32];
+	chunk s8data[32];
 	s8.data = s8data;
-	chunk_t s9data[32];
+	chunk s9data[32];
 	s9.data = s9data;
 
 	// Assuming a = (c15,...,c0) (32-bit chunks)
@@ -1502,15 +1537,15 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(32, 256, s1.data);
-	char * s2dump = GetString(32, 256, s2.data);
-	char * s3dump = GetString(32, 256, s3.data);
-	char * s4dump = GetString(32, 256, s4.data);
-	char * s5dump = GetString(32, 256, s5.data);
-	char * s6dump = GetString(32, 256, s6.data);
-	char * s7dump = GetString(32, 256, s7.data);
-	char * s8dump = GetString(32, 256, s8.data);
-	char * s9dump = GetString(32, 256, s9.data);
+	char * s1dump = GetString(32, 256, &s1);
+	char * s2dump = GetString(32, 256, &s2);
+	char * s3dump = GetString(32, 256, &s3);
+	char * s4dump = GetString(32, 256, &s4);
+	char * s5dump = GetString(32, 256, &s5);
+	char * s6dump = GetString(32, 256, &s6);
+	char * s7dump = GetString(32, 256, &s7);
+	char * s8dump = GetString(32, 256, &s8);
+	char * s9dump = GetString(32, 256, &s9);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -1523,8 +1558,8 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -1546,26 +1581,26 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 32 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[16]; // 16 * 16 = 256
+	chunk s1data[16]; // 16 * 16 = 256
 	s1.data = s1data;
-	chunk_t s2data[16];
+	chunk s2data[16];
 	s2.data = s2data;
-	chunk_t s3data[16];
+	chunk s3data[16];
 	s3.data = s3data;
-	chunk_t s4data[16];
+	chunk s4data[16];
 	s4.data = s4data;
-	chunk_t s5data[16];
+	chunk s5data[16];
 	s5.data = s5data;
-	chunk_t s6data[16];
+	chunk s6data[16];
 	s6.data = s6data;
-	chunk_t s7data[16];
+	chunk s7data[16];
 	s7.data = s7data;
-	chunk_t s8data[16];
+	chunk s8data[16];
 	s8.data = s8data;
-	chunk_t s9data[16];
+	chunk s9data[16];
 	s9.data = s9data;
 
 	// Assuming a = (c15,...,c0) (32-bit chunks)
@@ -1725,15 +1760,15 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(16, 256, s1.data);
-	char * s2dump = GetString(16, 256, s2.data);
-	char * s3dump = GetString(16, 256, s3.data);
-	char * s4dump = GetString(16, 256, s4.data);
-	char * s5dump = GetString(16, 256, s5.data);
-	char * s6dump = GetString(16, 256, s6.data);
-	char * s7dump = GetString(16, 256, s7.data);
-	char * s8dump = GetString(16, 256, s8.data);
-	char * s9dump = GetString(16, 256, s9.data);
+	char * s1dump = GetString(16, 256, &s1);
+	char * s2dump = GetString(16, 256, &s2);
+	char * s3dump = GetString(16, 256, &s3);
+	char * s4dump = GetString(16, 256, &s4);
+	char * s5dump = GetString(16, 256, &s5);
+	char * s6dump = GetString(16, 256, &s6);
+	char * s7dump = GetString(16, 256, &s7);
+	char * s8dump = GetString(16, 256, &s8);
+	char * s9dump = GetString(16, 256, &s9);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -1746,8 +1781,8 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -1769,26 +1804,26 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 8 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[4]; // 64 * 4 = 256
+	chunk s1data[4]; // 64 * 4 = 256
 	s1.data = s1data;
-	chunk_t s2data[4];
+	chunk s2data[4];
 	s2.data = s2data;
-	chunk_t s3data[4];
+	chunk s3data[4];
 	s3.data = s3data;
-	chunk_t s4data[4];
+	chunk s4data[4];
 	s4.data = s4data;
-	chunk_t s5data[4];
+	chunk s5data[4];
 	s5.data = s5data;
-	chunk_t s6data[4];
+	chunk s6data[4];
 	s6.data = s6data;
-	chunk_t s7data[4];
+	chunk s7data[4];
 	s7.data = s7data;
-	chunk_t s8data[4];
+	chunk s8data[4];
 	s8.data = s8data;
-	chunk_t s9data[4];
+	chunk s9data[4];
 	s9.data = s9data;
 
 	// Assuming a = (c15,...,c0) (32-bit chunks)
@@ -1840,15 +1875,15 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(4, 256, s1.data);
-	char * s2dump = GetString(4, 256, s2.data);
-	char * s3dump = GetString(4, 256, s3.data);
-	char * s4dump = GetString(4, 256, s4.data);
-	char * s5dump = GetString(4, 256, s5.data);
-	char * s6dump = GetString(4, 256, s6.data);
-	char * s7dump = GetString(4, 256, s7.data);
-	char * s8dump = GetString(4, 256, s8.data);
-	char * s9dump = GetString(4, 256, s9.data);
+	char * s1dump = GetString(4, 256, &s1);
+	char * s2dump = GetString(4, 256, &s2);
+	char * s3dump = GetString(4, 256, &s3);
+	char * s4dump = GetString(4, 256, &s4);
+	char * s5dump = GetString(4, 256, &s5);
+	char * s6dump = GetString(4, 256, &s6);
+	char * s7dump = GetString(4, 256, &s7);
+	char * s8dump = GetString(4, 256, &s8);
+	char * s9dump = GetString(4, 256, &s9);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -1861,8 +1896,8 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -1884,26 +1919,26 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 16 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[8]; // 32 * 8 = 256
+	chunk s1data[8]; // 32 * 8 = 256
 	s1.data = s1data;
-	chunk_t s2data[8];
+	chunk s2data[8];
 	s2.data = s2data;
-	chunk_t s3data[8];
+	chunk s3data[8];
 	s3.data = s3data;
-	chunk_t s4data[8];
+	chunk s4data[8];
 	s4.data = s4data;
-	chunk_t s5data[8];
+	chunk s5data[8];
 	s5.data = s5data;
-	chunk_t s6data[8];
+	chunk s6data[8];
 	s6.data = s6data;
-	chunk_t s7data[8];
+	chunk s7data[8];
 	s7.data = s7data;
-	chunk_t s8data[8];
+	chunk s8data[8];
 	s8.data = s8data;
-	chunk_t s9data[8];
+	chunk s9data[8];
 	s9.data = s9data;
 
 	// Assuming a = (c15,...,c0) (32-bit chunks)
@@ -1991,15 +2026,15 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(8, 256, s1.data);
-	char * s2dump = GetString(8, 256, s2.data);
-	char * s3dump = GetString(8, 256, s3.data);
-	char * s4dump = GetString(8, 256, s4.data);
-	char * s5dump = GetString(8, 256, s5.data);
-	char * s6dump = GetString(8, 256, s6.data);
-	char * s7dump = GetString(8, 256, s7.data);
-	char * s8dump = GetString(8, 256, s8.data);
-	char * s9dump = GetString(8, 256, s9.data);
+	char * s1dump = GetString(8, 256, &s1);
+	char * s2dump = GetString(8, 256, &s2);
+	char * s3dump = GetString(8, 256, &s3);
+	char * s4dump = GetString(8, 256, &s4);
+	char * s5dump = GetString(8, 256, &s5);
+	char * s6dump = GetString(8, 256, &s6);
+	char * s7dump = GetString(8, 256, &s7);
+	char * s8dump = GetString(8, 256, &s8);
+	char * s9dump = GetString(8, 256, &s9);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -2012,8 +2047,8 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
 	Addition(&partialres1, &s1, &s2, field);
@@ -2034,34 +2069,34 @@ void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field)
 #endif
 }
 
-void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
+void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
 	// Note that a presents 96 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[48]; // 8 * 48 = 384
+	chunk s1data[48]; // 8 * 48 = 384
 	s1.data = s1data;
-	chunk_t s2data[48];
+	chunk s2data[48];
 	s2.data = s2data;
-	chunk_t s3data[48];
+	chunk s3data[48];
 	s3.data = s3data;
-	chunk_t s4data[48];
+	chunk s4data[48];
 	s4.data = s4data;
-	chunk_t s5data[48];
+	chunk s5data[48];
 	s5.data = s5data;
-	chunk_t s6data[48];
+	chunk s6data[48];
 	s6.data = s6data;
-	chunk_t s7data[48];
+	chunk s7data[48];
 	s7.data = s7data;
-	chunk_t s8data[48];
+	chunk s8data[48];
 	s8.data = s8data;
-	chunk_t s9data[48];
+	chunk s9data[48];
 	s9.data = s9data;
-	chunk_t s10data[48];
+	chunk s10data[48];
 	s10.data = s10data;
 
 	// Assuming a = (c23,...,c0) (32-bit chunks)
@@ -2558,16 +2593,16 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(48, 384, s1.data);
-	char * s2dump = GetString(48, 384, s2.data);
-	char * s3dump = GetString(48, 384, s3.data);
-	char * s4dump = GetString(48, 384, s4.data);
-	char * s5dump = GetString(48, 384, s5.data);
-	char * s6dump = GetString(48, 384, s6.data);
-	char * s7dump = GetString(48, 384, s7.data);
-	char * s8dump = GetString(48, 384, s8.data);
-	char * s9dump = GetString(48, 384, s9.data);
-	char * s10dump = GetString(48, 384, s10.data);
+	char * s1dump = GetString(48, 384, &s1);
+	char * s2dump = GetString(48, 384, &s2);
+	char * s3dump = GetString(48, 384, &s3);
+	char * s4dump = GetString(48, 384, &s4);
+	char * s5dump = GetString(48, 384, &s5);
+	char * s6dump = GetString(48, 384, &s6);
+	char * s7dump = GetString(48, 384, &s7);
+	char * s8dump = GetString(48, 384, &s8);
+	char * s9dump = GetString(48, 384, &s9);
+	char * s10dump = GetString(48, 384, &s10);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -2581,8 +2616,8 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -2604,28 +2639,28 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 48 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[24]; // 16 * 24 = 384
+	chunk s1data[24]; // 16 * 24 = 384
 	s1.data = s1data;
-	chunk_t s2data[24];
+	chunk s2data[24];
 	s2.data = s2data;
-	chunk_t s3data[24];
+	chunk s3data[24];
 	s3.data = s3data;
-	chunk_t s4data[24];
+	chunk s4data[24];
 	s4.data = s4data;
-	chunk_t s5data[24];
+	chunk s5data[24];
 	s5.data = s5data;
-	chunk_t s6data[24];
+	chunk s6data[24];
 	s6.data = s6data;
-	chunk_t s7data[24];
+	chunk s7data[24];
 	s7.data = s7data;
-	chunk_t s8data[24];
+	chunk s8data[24];
 	s8.data = s8data;
-	chunk_t s9data[24];
+	chunk s9data[24];
 	s9.data = s9data;
-	chunk_t s10data[24];
+	chunk s10data[24];
 	s10.data = s10data;
 
 	// Assuming a = (c23,...,c0) (32-bit chunks)
@@ -2882,16 +2917,16 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(24, 384, s1.data);
-	char * s2dump = GetString(24, 384, s2.data);
-	char * s3dump = GetString(24, 384, s3.data);
-	char * s4dump = GetString(24, 384, s4.data);
-	char * s5dump = GetString(24, 384, s5.data);
-	char * s6dump = GetString(24, 384, s6.data);
-	char * s7dump = GetString(24, 384, s7.data);
-	char * s8dump = GetString(24, 384, s8.data);
-	char * s9dump = GetString(24, 384, s9.data);
-	char * s10dump = GetString(24, 384, s10.data);
+	char * s1dump = GetString(24, 384, &s1);
+	char * s2dump = GetString(24, 384, &s2);
+	char * s3dump = GetString(24, 384, &s3);
+	char * s4dump = GetString(24, 384, &s4);
+	char * s5dump = GetString(24, 384, &s5);
+	char * s6dump = GetString(24, 384, &s6);
+	char * s7dump = GetString(24, 384, &s7);
+	char * s8dump = GetString(24, 384, &s8);
+	char * s9dump = GetString(24, 384, &s9);
+	char * s10dump = GetString(24, 384, &s10);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -2905,8 +2940,8 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -2928,28 +2963,28 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 12 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[6]; // 64 * 6 = 384
+	chunk s1data[6]; // 64 * 6 = 384
 	s1.data = s1data;
-	chunk_t s2data[6];
+	chunk s2data[6];
 	s2.data = s2data;
-	chunk_t s3data[6];
+	chunk s3data[6];
 	s3.data = s3data;
-	chunk_t s4data[6];
+	chunk s4data[6];
 	s4.data = s4data;
-	chunk_t s5data[6];
+	chunk s5data[6];
 	s5.data = s5data;
-	chunk_t s6data[6];
+	chunk s6data[6];
 	s6.data = s6data;
-	chunk_t s7data[6];
+	chunk s7data[6];
 	s7.data = s7data;
-	chunk_t s8data[6];
+	chunk s8data[6];
 	s8.data = s8data;
-	chunk_t s9data[6];
+	chunk s9data[6];
 	s9.data = s9data;
-	chunk_t s10data[6];
+	chunk s10data[6];
 	s10.data = s10data;
 
 	// Assuming a = (c23,...,c0) (32-bit chunks)
@@ -3026,16 +3061,16 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(6, 384, s1.data);
-	char * s2dump = GetString(6, 384, s2.data);
-	char * s3dump = GetString(6, 384, s3.data);
-	char * s4dump = GetString(6, 384, s4.data);
-	char * s5dump = GetString(6, 384, s5.data);
-	char * s6dump = GetString(6, 384, s6.data);
-	char * s7dump = GetString(6, 384, s7.data);
-	char * s8dump = GetString(6, 384, s8.data);
-	char * s9dump = GetString(6, 384, s9.data);
-	char * s10dump = GetString(6, 384, s10.data);
+	char * s1dump = GetString(6, 384, &s1);
+	char * s2dump = GetString(6, 384, &s2);
+	char * s3dump = GetString(6, 384, &s3);
+	char * s4dump = GetString(6, 384, &s4);
+	char * s5dump = GetString(6, 384, &s5);
+	char * s6dump = GetString(6, 384, &s6);
+	char * s7dump = GetString(6, 384, &s7);
+	char * s8dump = GetString(6, 384, &s8);
+	char * s9dump = GetString(6, 384, &s9);
+	char * s10dump = GetString(6, 384, &s10);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -3049,8 +3084,8 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -3072,28 +3107,28 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Note that a presents 24 chunks
 
-	element_t s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
+	pfelement s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, partialres1, partialres2;
 
 	// Init partial results data
-	chunk_t s1data[12]; // 32 * 12 = 384
+	chunk s1data[12]; // 32 * 12 = 384
 	s1.data = s1data;
-	chunk_t s2data[12];
+	chunk s2data[12];
 	s2.data = s2data;
-	chunk_t s3data[12];
+	chunk s3data[12];
 	s3.data = s3data;
-	chunk_t s4data[12];
+	chunk s4data[12];
 	s4.data = s4data;
-	chunk_t s5data[12];
+	chunk s5data[12];
 	s5.data = s5data;
-	chunk_t s6data[12];
+	chunk s6data[12];
 	s6.data = s6data;
-	chunk_t s7data[12];
+	chunk s7data[12];
 	s7.data = s7data;
-	chunk_t s8data[12];
+	chunk s8data[12];
 	s8.data = s8data;
-	chunk_t s9data[12];
+	chunk s9data[12];
 	s9.data = s9data;
-	chunk_t s10data[12];
+	chunk s10data[12];
 	s10.data = s10data;
 
 	// Assuming a = (c23,...,c0) (32-bit chunks)
@@ -3230,16 +3265,16 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(12, 384, s1.data);
-	char * s2dump = GetString(12, 384, s2.data);
-	char * s3dump = GetString(12, 384, s3.data);
-	char * s4dump = GetString(12, 384, s4.data);
-	char * s5dump = GetString(12, 384, s5.data);
-	char * s6dump = GetString(12, 384, s6.data);
-	char * s7dump = GetString(12, 384, s7.data);
-	char * s8dump = GetString(12, 384, s8.data);
-	char * s9dump = GetString(12, 384, s9.data);
-	char * s10dump = GetString(12, 384, s10.data);
+	char * s1dump = GetString(12, 384, &s1);
+	char * s2dump = GetString(12, 384, &s2);
+	char * s3dump = GetString(12, 384, &s3);
+	char * s4dump = GetString(12, 384, &s4);
+	char * s5dump = GetString(12, 384, &s5);
+	char * s6dump = GetString(12, 384, &s6);
+	char * s7dump = GetString(12, 384, &s7);
+	char * s8dump = GetString(12, 384, &s8);
+	char * s9dump = GetString(12, 384, &s9);
+	char * s10dump = GetString(12, 384, &s10);
 	free(s1dump);
 	free(s2dump);
 	free(s3dump);
@@ -3253,8 +3288,8 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 #endif
 
 	// Allocate space for sum results
-	SetElement(&partialres1, "", field);
-	SetElement(&partialres2, "", field);
+	InitElement(&partialres1, "", field);
+	InitElement(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
 	Addition(&partialres1, &s1, &s2, field);
@@ -3275,18 +3310,18 @@ void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field)
 #endif
 }
 
-void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
+void FastReductionFIPSp521(pfelement * red, pfelement * a, pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
 
 	// a is 1042 bit wide, so 131 chunks of 8 bit are necessary
 
-	element_t s1, s2;
+	pfelement s1, s2;
 
 	// Init partial results data
-	chunk_t s1data[66]; // 8 * 66 = 528 = 521 + 7
+	chunk s1data[66]; // 8 * 66 = 528 = 521 + 7
 	s1.data = s1data;
-	chunk_t s2data[66];
+	chunk s2data[66];
 	s2.data = s2data;
 
 	// Assuming a = (a1041,...,a0) (1-bit chunks)
@@ -3427,8 +3462,8 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(66, 521, s1.data);
-	char * s2dump = GetString(66, 521, s2.data);
+	char * s1dump = GetString(66, 521, &s1);
+	char * s2dump = GetString(66, 521, &s2);
 	free(s1dump);
 	free(s2dump);
 #endif
@@ -3440,12 +3475,12 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// a is 1042 bit wide, so 66 chunks of 16 bit are necessary
 
-	element_t s1, s2;
+	pfelement s1, s2;
 
 	// Init partial results data
-	chunk_t s1data[33]; // 16 * 33 = 528 = 521 + 7
+	chunk s1data[33]; // 16 * 33 = 528 = 521 + 7
 	s1.data = s1data;
-	chunk_t s2data[33];
+	chunk s2data[33];
 	s2.data = s2data;
 
 	// Assuming a = (a1041,...,a0) (1-bit chunks)
@@ -3520,8 +3555,8 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(33, 521, s1.data);
-	char * s2dump = GetString(33, 521, s2.data);
+	char * s1dump = GetString(33, 521, &s1);
+	char * s2dump = GetString(33, 521, &s2);
 	free(s1dump);
 	free(s2dump);
 #endif
@@ -3533,12 +3568,12 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// a is 1042 bit wide, so 17 chunks of 64 bit are necessary
 
-	element_t s1, s2;
+	pfelement s1, s2;
 
 	// Init partial results data
-	chunk_t s1data[9]; // 64 * 9 = 576 = 521 + 55
+	chunk s1data[9]; // 64 * 9 = 576 = 521 + 55
 	s1.data = s1data;
-	chunk_t s2data[9];
+	chunk s2data[9];
 	s2.data = s2data;
 
 	// Assuming a = (a1041,...,a0) (1-bit chunks)
@@ -3565,8 +3600,8 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(9, 521, s1.data);
-	char * s2dump = GetString(9, 521, s2.data);
+	char * s1dump = GetString(9, 521, &s1);
+	char * s2dump = GetString(9, 521, &s2);
 	free(s1dump);
 	free(s2dump);
 #endif
@@ -3578,12 +3613,12 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// a is 1042 bit wide, so 33 chunks of 32 bit are necessary
 
-	element_t s1, s2;
+	pfelement s1, s2;
 
 	// Init partial results data
-	chunk_t s1data[17]; // 32 * 17 = 544 = 521 + 23
+	chunk s1data[17]; // 32 * 17 = 544 = 521 + 23
 	s1.data = s1data;
-	chunk_t s2data[17];
+	chunk s2data[17];
 	s2.data = s2data;
 
 	// Assuming a = (a1041,...,a0) (1-bit chunks)
@@ -3626,8 +3661,8 @@ void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field)
 
 	// Debug info
 #ifdef _DEBUG
-	char * s1dump = GetString(17, 521, s1.data);
-	char * s2dump = GetString(17, 521, s2.data);
+	char * s1dump = GetString(17, 521, &s1);
+	char * s2dump = GetString(17, 521, &s2);
 	free(s1dump);
 	free(s2dump);
 #endif

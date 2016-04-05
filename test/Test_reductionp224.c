@@ -25,16 +25,16 @@ int main()
 {
 	wprintf(L"CPrimeFieldArithmetic fast modular reduction test");
 
-	field_t field;
-	SetField(&field, 224, "ffffffffffffffffffffffffffffffff000000000000000000000001");
-	element_t a;
+	pfproperties field;
+	InitFieldProperties(&field, 224, "ffffffffffffffffffffffffffffffff000000000000000000000001");
+	pfelement a;
 	unsigned int cnumber = 448 / ARCHITECTURE_BITS;
 	if (448 % ARCHITECTURE_BITS)
 	{
 		cnumber++;
 	}
-	a.data = (chunk_t *)malloc(cnumber * sizeof(chunk_t));
-	SetString("836599dda83f4f262f648033be340c2049385d9533ee3162d7219f0a86f3babdd10c85d6056a7ee5174a55cadbee486efd307da2334aea7b", cnumber, 448, a.data);
+	a.data = (chunk *)malloc(cnumber * sizeof(chunk));
+	SetString(&a, "836599dda83f4f262f648033be340c2049385d9533ee3162d7219f0a86f3babdd10c85d6056a7ee5174a55cadbee486efd307da2334aea7b", cnumber, 448);
 	a.data[0];
 	a.data[1];
 	a.data[2];
@@ -50,21 +50,28 @@ int main()
 	a.data[12];
 	a.data[13];
 	a.data[14];
-	//SetString("ffffffffffffffffffffffffffffffff000000000000100000000002", cnumber, 448, a.data);
-	char * hexdump = GetString(cnumber, 448, a.data);
+	//SetString(&a, "ffffffffffffffffffffffffffffffff000000000000100000000002", cnumber, 448);
+	char * hexdump = GetString(cnumber, 448, &a);
 
-	element_t reduced;
-	SetElement(&reduced, "", &field);
+	pfelement reduced;
+	InitElement(&reduced, "", &field);
 	FastReductionFIPSp224(&reduced, &a, &field);
 
-	char * hexdump2 = GetString(field.chunksNumber, field.bits, reduced.data);
+	char * hexdump2 = GetString(field.chunksNumber, field.bits, &reduced);
 
-	element_t true_red;
-	SetElement(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
+	pfelement true_red;
+	InitElement(&true_red, "c1c22d00f56b2e22b2337f3a5f9c68e70f5050fc2102fd192cc4cb3e", &field);
 
+	int retval = 0;
 	if (Equals(&reduced, &true_red, &field))
 	{
-		return 1;
+		retval = 1; // success
 	}
-	return 0;
+
+	FreeElement(&a);
+	FreeElement(&reduced);
+	FreeElement(&true_red);
+	FreeFieldProperties(&field);
+
+	return retval;
 }

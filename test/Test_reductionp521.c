@@ -28,16 +28,16 @@ int main()
 {
 	wprintf(L"CPrimeFieldArithmetic fast modular reduction test");
 
-	field_t field;
-	SetField(&field, FF_BITS, "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-	element_t a;
+	pfproperties field;
+	InitFieldProperties(&field, FF_BITS, "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+	pfelement a;
 	unsigned int cnumber = DFF_BITS / ARCHITECTURE_BITS;
 	if (DFF_BITS % ARCHITECTURE_BITS)
 	{
 		cnumber++;
 	}
-	a.data = (chunk_t *)malloc(cnumber * sizeof(chunk_t));
-	SetString("33da86a55a040bd8d495be225c7fa77c031805877e2578a8421cc2f2f187e7706bdb958a9ed0bb77f4f50e8bcc3b62c72c1a5259e418568c2e92333d4f2711949f29cf1aa2413b1d663fcb636f23f6daaf574772928905379b92f5830a5b01d86d6a3a17946856eedc52fc454e32d10b1fa26919c7b84491b842be2050f6e6e16e527", cnumber, DFF_BITS, a.data);
+	a.data = (chunk *)malloc(cnumber * sizeof(chunk));
+	SetString(&a, "33da86a55a040bd8d495be225c7fa77c031805877e2578a8421cc2f2f187e7706bdb958a9ed0bb77f4f50e8bcc3b62c72c1a5259e418568c2e92333d4f2711949f29cf1aa2413b1d663fcb636f23f6daaf574772928905379b92f5830a5b01d86d6a3a17946856eedc52fc454e32d10b1fa26919c7b84491b842be2050f6e6e16e527", cnumber, DFF_BITS);
 	a.data[0];
 	a.data[1];
 	a.data[2];
@@ -53,21 +53,28 @@ int main()
 	a.data[12];
 	a.data[13];
 	a.data[14];
-	char * hexdump = GetString(cnumber, DFF_BITS, a.data);
+	char * hexdump = GetString(cnumber, DFF_BITS, &a);
 
-	element_t reduced;
-	SetElement(&reduced, "", &field);
+	pfelement reduced;
+	InitElement(&reduced, "", &field);
 	FastReductionFIPSp521(&reduced, &a, &field);
 
-	char * hexdump2 = GetString(field.chunksNumber, field.bits, reduced.data);
+	char * hexdump2 = GetString(field.chunksNumber, field.bits, &reduced);
 
-	element_t true_red;
-	SetElement(&true_red, "3bc5df4ee3d2352aa1642805236ae6d58d375564817f3efb403e483d3c5cc25a027e259b7bf4c984d76cc9418eebc83387642f4aa50bcfe5a0739ef9e7a6a38a21", &field);
-	char * hexdump3 = GetString(field.chunksNumber, field.bits, true_red.data);
+	pfelement true_red;
+	InitElement(&true_red, "3bc5df4ee3d2352aa1642805236ae6d58d375564817f3efb403e483d3c5cc25a027e259b7bf4c984d76cc9418eebc83387642f4aa50bcfe5a0739ef9e7a6a38a21", &field);
+	char * hexdump3 = GetString(field.chunksNumber, field.bits, &true_red);
 
+	int retval = 0;
 	if (Equals(&reduced, &true_red, &field))
 	{
-		return 1;
+		retval = 1; // success
 	}
-	return 0;
+
+	FreeElement(&a);
+	FreeElement(&reduced);
+	FreeElement(&true_red);
+	FreeFieldProperties(&field);
+
+	return retval;
 }

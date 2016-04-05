@@ -22,16 +22,16 @@
 #include <stdint.h>
 
 // Define here the target architecture bit number
-#define ARCHITECTURE_BITS 8
+#define ARCHITECTURE_BITS 64
 
 #if ARCHITECTURE_BITS == 8
-typedef uint8_t chunk_t;
+typedef uint8_t chunk;
 #elif ARCHITECTURE_BITS == 16
-typedef uint16_t chunk_t;
+typedef uint16_t chunk;
 #elif ARCHITECTURE_BITS == 64
-typedef uint64_t chunk_t;
+typedef uint64_t chunk;
 #else
-typedef uint32_t chunk_t;
+typedef uint32_t chunk;
 #endif
 
 #endif // PRIMEFIELDGLOBALS_H

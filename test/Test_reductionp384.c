@@ -28,16 +28,16 @@ int main()
 {
 	wprintf(L"CPrimeFieldArithmetic fast modular reduction test");
 
-	field_t field;
-	SetField(&field, FF_BITS, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffff0000000000000000ffffffff");
-	element_t a;
+	pfproperties field;
+	InitFieldProperties(&field, FF_BITS, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffff0000000000000000ffffffff");
+	pfelement a;
 	unsigned int cnumber = DFF_BITS / ARCHITECTURE_BITS;
 	if (DFF_BITS % ARCHITECTURE_BITS)
 	{
 		cnumber++;
 	}
-	a.data = (chunk_t *)malloc(cnumber * sizeof(chunk_t));
-	SetString("82af13387880826f0a344d0eeeee6eff37e2ff2687673a686d1c1fe97f99004d32a4f04a3c55657c2a8242690914b3816623934182b88efa3ea8485b467ff8748feae38826db5749bed8c7712f6b0e83c8350ee9b924a44ad27139ef5d521507", cnumber, DFF_BITS, a.data);
+	a.data = (chunk *)malloc(cnumber * sizeof(chunk));
+	SetString(&a, "82af13387880826f0a344d0eeeee6eff37e2ff2687673a686d1c1fe97f99004d32a4f04a3c55657c2a8242690914b3816623934182b88efa3ea8485b467ff8748feae38826db5749bed8c7712f6b0e83c8350ee9b924a44ad27139ef5d521507", cnumber, DFF_BITS);
 	a.data[0];
 	a.data[1];
 	a.data[2];
@@ -53,20 +53,27 @@ int main()
 	a.data[12];
 	a.data[13];
 	a.data[14];
-	char * hexdump = GetString(cnumber, DFF_BITS, a.data);
+	char * hexdump = GetString(cnumber, DFF_BITS, &a);
 
-	element_t reduced;
-	SetElement(&reduced, "", &field);
+	pfelement reduced;
+	InitElement(&reduced, "", &field);
 	FastReductionFIPSp384(&reduced, &a, &field);
 
-	char * hexdump2 = GetString(field.chunksNumber, field.bits, reduced.data);
+	char * hexdump2 = GetString(field.chunksNumber, field.bits, &reduced);
 
-	element_t true_red;
-	SetElement(&true_red, "97239230b04efde94e7180bcea4088847553ac172dff706f9117f417266f798bc58c73a043728d88001fef7edcda715e", &field);
+	pfelement true_red;
+	InitElement(&true_red, "97239230b04efde94e7180bcea4088847553ac172dff706f9117f417266f798bc58c73a043728d88001fef7edcda715e", &field);
 
+	int retval = 0;
 	if (Equals(&reduced, &true_red, &field))
 	{
-		return 1;
+		retval = 1; // success
 	}
-	return 0;
+
+	FreeElement(&a);
+	FreeElement(&reduced);
+	FreeElement(&true_red);
+	FreeFieldProperties(&field);
+
+	return retval;
 }

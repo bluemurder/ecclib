@@ -25,21 +25,21 @@
 * accordingly.
 *
 * First steps to get a working environment:
-* 1) Define a field_t object, it will be unique for operating on a certain
-* field. 
-* 2) Call SetField() to set parameters and allocate needed memory.
-* 3) Define some element_t that will represent elements belonging to the 
+* 1) Define a pfproperties object, it will be unique for operating on a 
+* specific field. 
+* 2) Call InitFieldProperties() to set parameters and allocate needed memory.
+* 3) Define some pfelement that will represent elements belonging to the 
 * previously defined field.
-* 4) Call SetElement() to set element values and allocate memory.
+* 4) Call InitElement() to set element values and allocate memory.
 * 5) Now perform operations among field elements.
 * 6) Call FreeElement() on every element to free memory.
-* 7) Call FreeField() to free field memory.
+* 7) Call FreeFieldProperties() to free field structure memory.
 *
 * Warning: no null pointer deferencing check is performed on current
 * library functions. It is responsibility of the developer to provide valid
 * data to present code.
 *
-* Some references for following algorithms:
+* References for following algorithms:
 * [1] D. Hankerson, S. Vanstone, and A.J. Menezes. Guide to Elliptic Curve
 * Cryptography. Springer Professional Computing. Springer, 2004.
 * [2] W. Hasenplaugh, G. Gaubatz, V. Gopal. Fast Modular Reduction.
@@ -63,6 +63,21 @@
 * Ofman algorithm, see Knuth [4], Koc [5], and Geddes, Czapor, and Labahn
 * [6]. A detailed treatment of methods for performing modular multiplication
 * can be found in Knuth [4].
+*
+* The analysis carried in [1] defines a list of algorithms:
+* - Addition in Fp (algorithm 2.7)
+* - Subtraction in Fp (algorithm 2.8)
+* - Integer multiplication, product scanning form (algorithm 2.10)(+)
+* - Karatsuba-Ofman multiplication (example 2.12)
+* - Barrett reduction (algorithm 2.14)(+)
+* - Fast reduction algorithms for NIST primes (algorithms 2.27-2.31)(+)
+* - Binary algorithm for inversion in Fp (algorithm 2.22)(+)
+* - Partial Montgomery inversion in Fp (algorithm 2.23)
+* - Montgomery inversion in Fp (algorithm 2.25, including calls to 2.23)
+*
+* Some of above algorithms are included in the sofware implementation timing 
+* analysis described in [1], chapter 5. In such chapter, (+) show best 
+* results.
 */
 
 #ifndef CPRIMEFIELFARITHMETICINT_H
@@ -70,110 +85,168 @@
 
 #include "PrimeFieldGlobals.h"
 
-//! Field element structure
-struct _element_t
+//! Generic multiple precision number structure
+struct _mpnumber
 {
-	chunk_t * data; //!< The data array
+	chunk * data;
+	unsigned int size;
 };
 
-typedef struct _element_t element_t;
+//! Generic multiple precision number type
+typedef struct _mpnumber mpnumber;
+
+//! Prime field element type
+typedef struct _mpnumber pfelement;
 
 //! Field properties structure
-struct _field_t
+struct _pfproperties
 {
 	unsigned int bits;			//!< Field dimension in bits
 	unsigned int chunksNumber;	//!< Number of chunks of every field element
-	element_t characteristics;	//!< Field characteristics
-	element_t mu;				//!< Barrett reduction precomputed term
-	unsigned int muReady;		//!< 1 when mu is computed, 0 otherwise
+	mpnumber characteristics;	//!< Field characteristics
+	mpnumber mu;				//!< Barrett reduction precomputed term
 };
 
-typedef struct _field_t field_t;
+//! Field properties type
+typedef struct _pfproperties pfproperties;
 
-unsigned int GreaterOrEqual(element_t * a, element_t * b, field_t * field);
+//! Checks if a is greater or equal than b.
+//! \returns 1 if a is greater than or equal to b, 0 otherwise
+unsigned int GreaterOrEqual(pfelement * a, pfelement * b, pfproperties * field);
 
-unsigned int Equals(element_t * a, element_t * b, field_t * field);
+//! Checks if a is equal to b
+//! \returns 1 if a is equal to b, 0 otherwise
+unsigned int Equals(pfelement * a, pfelement * b, pfproperties * field);
 
-//! Writes the hexdecimal value from hexString to data, strictly following 
+//! Writes the hexdecimal value from hexString to element, strictly following 
 //! the specified bitsize
 //! \param hexString The hexdecimal value to write (MSB letf)
 //! \param chunksNumber The number of chunks already allocated
 //! \param bitSize The size in bits of the underlying field
-//! \param data The vector of chunks to fill
+//! \param element The finite field element to fill
 void SetString(
+	pfelement * element,
 	char * hexString, 
 	unsigned int chunksNumber,
-	unsigned int bitSize, 
-	chunk_t * data);
+	unsigned int bitSize);
+
+//! Writes the hexdecimal value from hexString to element, strictly following 
+//! the specified bitsize
+//! \param hexString The hexdecimal value to write (MSB letf)
+//! \param chunksNumber The number of chunks already allocated
+//! \param bitSize The size in bits of the underlying field
+//! \param number The multiple precision number to fill
+void SetString(
+	mpnumber * number,
+	char * hexString,
+	unsigned int chunksNumber,
+	unsigned int bitSize);
 
 //! Give a string containing the hexadecimal representation of the number 
 //! stored in element. This is not an efficient implementation, use only for 
 //! debug purposes.
-//! \param chunksNumber The number of chunks of given data array
-//! \param bitSize The size in bits of the number to print
-//! \param data The multiprecision number data
+//! \param chunksNumber The number of chunks of given prime field element
+//! \param bitSize The size in bits of prime field element
+//! \param element The prime field element
 //! \returns The hexadecimal representation string, remember to free such
 //! memory
-char * GetString(unsigned int chunksNumber, unsigned int bitSize, chunk_t * data);
+char * GetString(unsigned int chunksNumber, unsigned int bitSize, pfelement * element);
+
+//! Give a string containing the hexadecimal representation of the number.
+//! This is not an efficient implementation, use only for debug purposes.
+//! \param chunksNumber The number of chunks of given prime field element
+//! \param bitSize The size in bits of prime field element
+//! \param element The prime field element
+//! \returns The hexadecimal representation string, remember to free such
+//! memory
+char * GetString(unsigned int chunksNumber, unsigned int bitSize, mpnumber * number);
 
 //! Sets the specified bit size and characteristics in the field object
 //! \param field The field to fill (must point to already allocated memory)
 //! \param fieldBitSize The field bis size
 //! \param characteristics Hex string describing the field characteristics
-void SetField(field_t * field, unsigned int fieldBitSize, char * characteristics);
+void InitFieldProperties(pfproperties * field, unsigned int fieldBitSize, char * characteristics);
 
 //! Sets the specified value expressed via a hex string in the field element 
-//! object. Needs the presence of a field_t object storing field bitsize, 
+//! object. Needs the presence of a pfproperties object storing field bitsize, 
 //! chunks number and characteristics.
 //! \param element The target element to write
 //! \param hexString The string value to write
 //! \param field The object storing field data
-void SetElement(element_t * element, char * hexString, field_t * field);
+void InitElement(pfelement * element, char * hexString, pfproperties * field);
+
+//! Sets the specified value expressed via a hex string in the number.
+//! Needs the presence of a pfproperties object storing field bitsize, 
+//! chunks number and characteristics.
+//! \param element The target element to write
+//! \param hexString The string value to write
+//! \param field The object storing field data
+void InitNumber(mpnumber * number, char * hexString, pfproperties * field);
 
 //! Erase the memory of internal members of element
-void FreeElement(element_t * element);
+void FreeElement(pfelement * element);
+
+//! Erase the memory of internal members of number
+void FreeNumber(mpnumber * number);
 
 //! Erase the memory of internal members of field
-void FreeField(field_t * field);
+void FreeFieldProperties(pfproperties * field);
 
 //! Addition of a and b over a prime field. Let p the field characteristics, 
 //! the method evaluates a+b(mod p)
 //! Algorithm 2.7 [1]
-void Addition(element_t * sum, element_t * a, element_t * b, field_t * field);
+void Addition(pfelement * sum, pfelement * a, pfelement * b, pfproperties * field);
 
 //! Subtraction of b from a over a prime field. Let p the field 
 //! characteristics, the method evaluates a-b(mod p)
 //! Algorithm 2.8 [1]
-void Subtraction(element_t * sub, element_t * a, element_t * b, field_t * field);
+void Subtraction(pfelement * sub, pfelement * a, pfelement * b, pfproperties * field);
+
+//! Multiplication of a and b over a prime field. Let p the field 
+//! characteristics, the method evaluates ab(mod p)
+void Multiplication(pfelement * mul, pfelement * a, pfelement * b, pfproperties * field);
+
+//! Division of a and b over a prime field. Let p the field 
+//! characteristics, the method evaluates a/b(mod p)
+void Division(pfelement * div, pfelement * a, pfelement * b, pfproperties * field);
+
+//! Long division algorithm [4], computing the quotient of a/b with the 
+//! corresponding remainder. 
+void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
+
+//! Short division algorithm [4], computing the quotient of a/b with the 
+//! corresponding remainder, with b as a single precision number.
+//! \param a The divisor (chunks array)
+void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
 
 //! General modulo reduction
 //! Algorithm 2.14 [1]
 //! http://cacr.uwaterloo.ca/hac/about/chap14.pdf
-void BarrettReduction(element_t * red, element_t a, field_t * field);
+void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field);
 
 //! Modified Barrett modulo reduction [2]
-void ModifiedBarretReduction(element_t * red, element_t a, field_t * field);
+void ModifiedBarretReduction(pfelement * red, mpnumber * a, pfproperties * field);
 
 //! Fast modulo reduction for p = 2^192 − 2^64 − 1 (FIPS 186-4 prime)
 //! Algorithm 2.27 [1]
-void FastReductionFIPSp192(element_t * red, element_t * a, field_t * field);
+void FastReductionFIPSp192(pfelement * red, pfelement * a, pfproperties * field);
 
 //! Fast modulo reduction for p = 2^224 − 2^96 + 1 (FIPS 186-4 prime)
 //! Algorithm 2.28 [1]
-void FastReductionFIPSp224(element_t * red, element_t * a, field_t * field);
+void FastReductionFIPSp224(pfelement * red, pfelement * a, pfproperties * field);
 
 //! Fast modulo reduction for p = 2^256 - 2^224 + 2^192 + 2^96 - 1 
 //! (FIPS 186-4 prime)
 //! Algorithm 2.29 [1]
-void FastReductionFIPSp256(element_t * red, element_t * a, field_t * field);
+void FastReductionFIPSp256(pfelement * red, pfelement * a, pfproperties * field);
 
 //! Fast modulo reduction for p = 2^384 - 2^128 - 2^96 + 2^32 - 1 
 //! (FIPS 186-4 prime)
 //! Algorithm 2.30 [1]
-void FastReductionFIPSp384(element_t * red, element_t * a, field_t * field);
+void FastReductionFIPSp384(pfelement * red, pfelement * a, pfproperties * field);
 
 //! Fast modulo reduction for p = 2^521 - 1 (FIPS 186-4 prime)
 //! Algorithm 2.31 [1]
-void FastReductionFIPSp521(element_t * red, element_t * a, field_t * field);
+void FastReductionFIPSp521(pfelement * red, pfelement * a, pfproperties * field);
 
 #endif // CPRIMEFIELFARITHMETICINT_H

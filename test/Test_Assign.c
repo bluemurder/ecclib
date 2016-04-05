@@ -25,10 +25,10 @@ int main()
 {
 	wprintf(L"CPrimeFieldArithmetic Assignment test");
 
-	field_t field;
-	SetField(&field, 45, "1fffffffffff");
-	element_t n;
-	SetElement(&n, "009000000000000000000000012", &field);
+	pfproperties field;
+	InitFieldProperties(&field, 45, "1fffffffffff");
+	pfelement n;
+	InitElement(&n, "009000000000000000000000012", &field);
 	n.data[0];
 	n.data[1];
 	n.data[2];
@@ -37,6 +37,9 @@ int main()
 	n.data[5];
 	n.data[6];
 	n.data[7];
+
+	FreeFieldProperties(&field);
+	FreeElement(&n);
 
 	return 0;
 }

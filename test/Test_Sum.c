@@ -25,14 +25,14 @@ int main()
 {
 	wprintf(L"CPrimeFieldArithmetic modular sum and modular subtraction  test");
 
-	field_t field;
-	SetField(&field, 45, "1fffffffffff");
-	element_t a;
-	SetElement(&a, "009000000000000000000ff01", &field);
-	element_t b;
-	SetElement(&b, "1ffffffffffe", &field);
-	element_t c;
-	SetElement(&c, "0", &field);
+	pfproperties field;
+	InitFieldProperties(&field, 45, "1fffffffffff");
+	pfelement a;
+	InitElement(&a, "009000000000000000000ff01", &field);
+	pfelement b;
+	InitElement(&b, "1ffffffffffe", &field);
+	pfelement c;
+	InitElement(&c, "0", &field);
 	Addition(&c, &a, &b, &field);
 
 	b.data[0];
@@ -51,8 +51,10 @@ int main()
 	c.data[6];
 	c.data[7];
 
-	element_t d;
-	SetElement(&d, "0", &field);
+	// Desired c = 0x000000000000ff00
+
+	pfelement d;
+	InitElement(&d, "0", &field);
 	Subtraction(&d, &a, &b, &field);
 
 	d.data[0];
@@ -63,6 +65,14 @@ int main()
 	d.data[5];
 	d.data[6];
 	d.data[7];
+
+	// Desired d = 0x000000000000ff02
+
+	FreeFieldProperties(&field);
+	FreeElement(&a);
+	FreeElement(&b);
+	FreeElement(&c);
+	FreeElement(&d);
 
 	return 0;
 }
