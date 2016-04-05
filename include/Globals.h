@@ -1,5 +1,5 @@
 /***********************************************************************\
-* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
+* ecclib - Efficient library for elliptic curve cryptography            *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -16,8 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#ifndef PRIMEFIELDGLOBALS_H
-#define PRIMEFIELDGLOBALS_H
+#ifndef GLOBALS_H
+#define GLOBALS_H
 
 #include <stdint.h>
 
@@ -34,4 +34,4 @@ typedef uint64_t chunk;
 typedef uint32_t chunk;
 #endif
 
-#endif // PRIMEFIELDGLOBALS_H
+#endif // GLOBALS_H

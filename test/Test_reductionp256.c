@@ -1,5 +1,5 @@
 /***********************************************************************\
-* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
+* ecclib - Efficient library for elliptic curve cryptography            *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -16,7 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#include "../include/CPrimeFieldArithmeticInt.h"
+#include "../include/PrimeFieldArithmeticInt.h"
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"

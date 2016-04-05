@@ -1,5 +1,5 @@
 ﻿/***********************************************************************\
-* CPrimeFieldArithmetic - Prime Field Arithmetic primitives             *
+* ecclib - Efficient library for elliptic curve cryptography            *
 * Copyright (C) 2015  Alessio Leoncini                                  *
 *                                                                       *
 * This program is free software: you can redistribute it and/or modify  *
@@ -17,12 +17,11 @@
 \***********************************************************************/
 
 /*!
-* \file CPrimeFieldArithmetic.h
+* \file PrimeFieldArithmetic.h
 * Header file for prime field arithmetic functions.
 * 
 * Present library is designed to allow deploying on 8, 16, 32 and 64 bit
-* platforms. User have to define globals in "PrimeFieldGlobals.h"
-* accordingly.
+* platforms. User have to define globals in "Globals.h" accordingly.
 *
 * First steps to get a working environment:
 * 1) Define a pfproperties object, it will be unique for operating on a 
@@ -83,17 +82,7 @@
 #ifndef CPRIMEFIELFARITHMETICINT_H
 #define CPRIMEFIELFARITHMETICINT_H
 
-#include "PrimeFieldGlobals.h"
-
-//! Generic multiple precision number structure
-struct _mpnumber
-{
-	chunk * data;
-	unsigned int size;
-};
-
-//! Generic multiple precision number type
-typedef struct _mpnumber mpnumber;
+#include "../include/MultiprecisionArithmeticInt.h"
 
 //! Prime field element type
 typedef struct _mpnumber pfelement;

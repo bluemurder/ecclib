@@ -16,30 +16,28 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 \***********************************************************************/
 
-#include "../include/PrimeFieldArithmeticInt.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+/*!
+* \file MultiprecisionArithmetic.h
+* Header file for multiple precision positive integer arithmetic functions.
+*/
 
-int main()
+#ifndef MULTIPRECISIONARITHMETICINT_H
+#define MULTIPRECISIONARITHMETICINT_H
+
+#include "Globals.h"
+
+//! Generic multiple precision number structure
+struct _mpnumber
 {
-	wprintf(L"CPrimeFieldArithmetic Assignment test");
+	chunk * data;
+	unsigned int size;
+};
 
-	pfproperties field;
-	InitFieldProperties(&field, 45, "1fffffffffff");
-	pfelement n;
-	InitElementByString(&n, "009000000000000000000000012", &field);
-	n.data[0];
-	n.data[1];
-	n.data[2];
-	n.data[3];
-	n.data[4];
-	n.data[5];
-	n.data[6];
-	n.data[7];
+//! Generic multiple precision number type
+typedef struct _mpnumber mpnumber;
 
-	FreeFieldProperties(&field);
-	FreeElement(&n);
+//! Multiple precision addition algorithm
+//! 
+void MPAddition(mpnumber * sum, mpnumber * a, mpnumber * b);
 
-	return 0;
-}
+#endif // MULTIPRECISIONARITHMETICINT_H
