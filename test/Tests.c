@@ -37,7 +37,7 @@ unsigned int testSumSub()
 	pfelement c;
 	InitElementByString(&c, "0", &field);
 	pfelement desired;
-	Addition(&c, &a, &b, &field);
+	PFAddition(&c, &a, &b, &field);
 
 	b.data[0];
 	b.data[1];
@@ -64,7 +64,7 @@ unsigned int testSumSub()
 
 	pfelement d;
 	InitElementByString(&d, "0", &field);
-	Subtraction(&d, &a, &b, &field);
+	PFSubtraction(&d, &a, &b, &field);
 
 	d.data[0];
 	d.data[1];

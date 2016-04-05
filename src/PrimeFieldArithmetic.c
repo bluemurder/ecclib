@@ -112,7 +112,7 @@ unsigned int GreaterOrEqual(pfelement * a, pfelement * b, pfproperties * field)
 	}
 }
 
-void Addition(
+void PFAddition(
 	pfelement * sum,
 	pfelement * a,
 	pfelement * b,
@@ -160,7 +160,7 @@ void Addition(
 	}
 }
 
-void Subtraction(
+void PFSubtraction(
 	pfelement * sub,
 	pfelement * a,
 	pfelement * b,
@@ -207,7 +207,7 @@ void Subtraction(
 	}
 }
 
-void Multiplication(
+void PFMultiplication(
 	pfelement * mul,
 	pfelement * a,
 	pfelement * b,
@@ -217,7 +217,7 @@ void Multiplication(
 	// Call to proper modulo reduction algorithm
 }
 
-void Division(
+void PFDivision(
 	pfelement * div,
 	pfelement * a,
 	pfelement * b,
@@ -383,9 +383,9 @@ void FastReductionFIPSp192(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(red, &partialres2, &s4, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(red, &partialres2, &s4, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -478,9 +478,9 @@ void FastReductionFIPSp192(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(red, &partialres2, &s4, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(red, &partialres2, &s4, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -537,9 +537,9 @@ void FastReductionFIPSp192(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(red, &partialres2, &s4, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(red, &partialres2, &s4, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -608,9 +608,9 @@ void FastReductionFIPSp192(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 + s4
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(red, &partialres2, &s4, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(red, &partialres2, &s4, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -809,10 +809,10 @@ void FastReductionFIPSp224(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Subtraction(&partialres1, &partialres2, &s4, field);
-	Subtraction(red, &partialres1, &s5, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFSubtraction(&partialres1, &partialres2, &s4, field);
+	PFSubtraction(red, &partialres1, &s5, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -932,10 +932,10 @@ void FastReductionFIPSp224(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Subtraction(&partialres1, &partialres2, &s4, field);
-	Subtraction(red, &partialres1, &s5, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFSubtraction(&partialres1, &partialres2, &s4, field);
+	PFSubtraction(red, &partialres1, &s5, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1005,10 +1005,10 @@ void FastReductionFIPSp224(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Subtraction(&partialres1, &partialres2, &s4, field);
-	Subtraction(red, &partialres1, &s5, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFSubtraction(&partialres1, &partialres2, &s4, field);
+	PFSubtraction(red, &partialres1, &s5, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1093,10 +1093,10 @@ void FastReductionFIPSp224(
 	InitElementByString(&partialres2, "", field);
 
 	// red = s1 + s2 + s3 - s4 - s5
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Subtraction(&partialres1, &partialres2, &s4, field);
-	Subtraction(red, &partialres1, &s5, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFSubtraction(&partialres1, &partialres2, &s4, field);
+	PFSubtraction(red, &partialres1, &s5, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1462,16 +1462,16 @@ void FastReductionFIPSp256(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(&partialres1, &partialres2, &s4, field);
-	Addition(&partialres2, &partialres1, &s5, field);
-	Subtraction(&partialres1, &partialres2, &s6, field);
-	Subtraction(&partialres2, &partialres1, &s7, field);
-	Subtraction(&partialres1, &partialres2, &s8, field);
-	Subtraction(red, &partialres1, &s9, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(&partialres1, &partialres2, &s4, field);
+	PFAddition(&partialres2, &partialres1, &s5, field);
+	PFSubtraction(&partialres1, &partialres2, &s6, field);
+	PFSubtraction(&partialres2, &partialres1, &s7, field);
+	PFSubtraction(&partialres1, &partialres2, &s8, field);
+	PFSubtraction(red, &partialres1, &s9, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1685,16 +1685,16 @@ void FastReductionFIPSp256(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(&partialres1, &partialres2, &s4, field);
-	Addition(&partialres2, &partialres1, &s5, field);
-	Subtraction(&partialres1, &partialres2, &s6, field);
-	Subtraction(&partialres2, &partialres1, &s7, field);
-	Subtraction(&partialres1, &partialres2, &s8, field);
-	Subtraction(red, &partialres1, &s9, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(&partialres1, &partialres2, &s4, field);
+	PFAddition(&partialres2, &partialres1, &s5, field);
+	PFSubtraction(&partialres1, &partialres2, &s6, field);
+	PFSubtraction(&partialres2, &partialres1, &s7, field);
+	PFSubtraction(&partialres1, &partialres2, &s8, field);
+	PFSubtraction(red, &partialres1, &s9, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1800,16 +1800,16 @@ void FastReductionFIPSp256(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(&partialres1, &partialres2, &s4, field);
-	Addition(&partialres2, &partialres1, &s5, field);
-	Subtraction(&partialres1, &partialres2, &s6, field);
-	Subtraction(&partialres2, &partialres1, &s7, field);
-	Subtraction(&partialres1, &partialres2, &s8, field);
-	Subtraction(red, &partialres1, &s9, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(&partialres1, &partialres2, &s4, field);
+	PFAddition(&partialres2, &partialres1, &s5, field);
+	PFSubtraction(&partialres1, &partialres2, &s6, field);
+	PFSubtraction(&partialres2, &partialres1, &s7, field);
+	PFSubtraction(&partialres1, &partialres2, &s8, field);
+	PFSubtraction(red, &partialres1, &s9, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -1951,16 +1951,16 @@ void FastReductionFIPSp256(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2*s2 + 2*s3 + s4 + s5 − s6 − s7 − s8 − s9
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s3, field);
-	Addition(&partialres1, &partialres2, &s4, field);
-	Addition(&partialres2, &partialres1, &s5, field);
-	Subtraction(&partialres1, &partialres2, &s6, field);
-	Subtraction(&partialres2, &partialres1, &s7, field);
-	Subtraction(&partialres1, &partialres2, &s8, field);
-	Subtraction(red, &partialres1, &s9, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s3, field);
+	PFAddition(&partialres1, &partialres2, &s4, field);
+	PFAddition(&partialres2, &partialres1, &s5, field);
+	PFSubtraction(&partialres1, &partialres2, &s6, field);
+	PFSubtraction(&partialres2, &partialres1, &s7, field);
+	PFSubtraction(&partialres1, &partialres2, &s8, field);
+	PFSubtraction(red, &partialres1, &s9, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -2523,16 +2523,16 @@ void FastReductionFIPSp384(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s4, field);
-	Addition(&partialres1, &partialres2, &s5, field);
-	Addition(&partialres2, &partialres1, &s6, field);
-	Addition(&partialres1, &partialres2, &s7, field);
-	Subtraction(&partialres2, &partialres1, &s8, field);
-	Subtraction(&partialres1, &partialres2, &s9, field);
-	Subtraction(red, &partialres1, &s10, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s4, field);
+	PFAddition(&partialres1, &partialres2, &s5, field);
+	PFAddition(&partialres2, &partialres1, &s6, field);
+	PFAddition(&partialres1, &partialres2, &s7, field);
+	PFSubtraction(&partialres2, &partialres1, &s8, field);
+	PFSubtraction(&partialres1, &partialres2, &s9, field);
+	PFSubtraction(red, &partialres1, &s10, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -2847,16 +2847,16 @@ void FastReductionFIPSp384(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s4, field);
-	Addition(&partialres1, &partialres2, &s5, field);
-	Addition(&partialres2, &partialres1, &s6, field);
-	Addition(&partialres1, &partialres2, &s7, field);
-	Subtraction(&partialres2, &partialres1, &s8, field);
-	Subtraction(&partialres1, &partialres2, &s9, field);
-	Subtraction(red, &partialres1, &s10, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s4, field);
+	PFAddition(&partialres1, &partialres2, &s5, field);
+	PFAddition(&partialres2, &partialres1, &s6, field);
+	PFAddition(&partialres1, &partialres2, &s7, field);
+	PFSubtraction(&partialres2, &partialres1, &s8, field);
+	PFSubtraction(&partialres1, &partialres2, &s9, field);
+	PFSubtraction(red, &partialres1, &s10, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -2991,16 +2991,16 @@ void FastReductionFIPSp384(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s4, field);
-	Addition(&partialres1, &partialres2, &s5, field);
-	Addition(&partialres2, &partialres1, &s6, field);
-	Addition(&partialres1, &partialres2, &s7, field);
-	Subtraction(&partialres2, &partialres1, &s8, field);
-	Subtraction(&partialres1, &partialres2, &s9, field);
-	Subtraction(red, &partialres1, &s10, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s4, field);
+	PFAddition(&partialres1, &partialres2, &s5, field);
+	PFAddition(&partialres2, &partialres1, &s6, field);
+	PFAddition(&partialres1, &partialres2, &s7, field);
+	PFSubtraction(&partialres2, &partialres1, &s8, field);
+	PFSubtraction(&partialres1, &partialres2, &s9, field);
+	PFSubtraction(red, &partialres1, &s10, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -3195,16 +3195,16 @@ void FastReductionFIPSp384(
 	InitElementByString(&partialres2, "", field);
 
 	// s1 + 2s2 + s3 + s4 + s5 + s6 + s7 − s8 − s9 − s10
-	Addition(&partialres1, &s1, &s2, field);
-	Addition(&partialres2, &partialres1, &s2, field);
-	Addition(&partialres1, &partialres2, &s3, field);
-	Addition(&partialres2, &partialres1, &s4, field);
-	Addition(&partialres1, &partialres2, &s5, field);
-	Addition(&partialres2, &partialres1, &s6, field);
-	Addition(&partialres1, &partialres2, &s7, field);
-	Subtraction(&partialres2, &partialres1, &s8, field);
-	Subtraction(&partialres1, &partialres2, &s9, field);
-	Subtraction(red, &partialres1, &s10, field);
+	PFAddition(&partialres1, &s1, &s2, field);
+	PFAddition(&partialres2, &partialres1, &s2, field);
+	PFAddition(&partialres1, &partialres2, &s3, field);
+	PFAddition(&partialres2, &partialres1, &s4, field);
+	PFAddition(&partialres1, &partialres2, &s5, field);
+	PFAddition(&partialres2, &partialres1, &s6, field);
+	PFAddition(&partialres1, &partialres2, &s7, field);
+	PFSubtraction(&partialres2, &partialres1, &s8, field);
+	PFSubtraction(&partialres1, &partialres2, &s9, field);
+	PFSubtraction(red, &partialres1, &s10, field);
 
 	// Free partial results space
 	FreeElement(&partialres1);
@@ -3375,7 +3375,7 @@ void FastReductionFIPSp521(
 #endif
 
 	// s1 + s2
-	Addition(red, &s1, &s2, field);
+	PFAddition(red, &s1, &s2, field);
 
 #elif ARCHITECTURE_BITS == 16
 
@@ -3468,7 +3468,7 @@ void FastReductionFIPSp521(
 #endif
 
 	// s1 + s2
-	Addition(red, &s1, &s2, field);
+	PFAddition(red, &s1, &s2, field);
 
 #elif ARCHITECTURE_BITS == 64
 
@@ -3513,7 +3513,7 @@ void FastReductionFIPSp521(
 #endif
 
 	// s1 + s2
-	Addition(red, &s1, &s2, field);
+	PFAddition(red, &s1, &s2, field);
 
 #else // Set chunks to 32 bit
 
@@ -3574,7 +3574,7 @@ void FastReductionFIPSp521(
 #endif
 
 	// s1 + s2
-	Addition(red, &s1, &s2, field);
+	PFAddition(red, &s1, &s2, field);
 
 #endif
 }

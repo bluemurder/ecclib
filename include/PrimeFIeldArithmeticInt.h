@@ -136,7 +136,7 @@ void FreeFieldProperties(pfproperties * field);
 //! Addition of a and b over a prime field. Let p the field characteristics, 
 //! the method evaluates a+b(mod p)
 //! Algorithm 2.7 [1]
-void Addition(
+void PFAddition(
 	pfelement * sum,
 	pfelement * a, 
 	pfelement * b,
@@ -145,7 +145,7 @@ void Addition(
 //! Subtraction of b from a over a prime field. Let p the field 
 //! characteristics, the method evaluates a-b(mod p)
 //! Algorithm 2.8 [1]
-void Subtraction(
+void PFSubtraction(
 	pfelement * sub, 
 	pfelement * a, 
 	pfelement * b,
@@ -153,7 +153,7 @@ void Subtraction(
 
 //! Multiplication of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates ab(mod p)
-void Multiplication(
+void PFMultiplication(
 	pfelement * mul, 
 	pfelement * a, 
 	pfelement * b, 
@@ -161,7 +161,7 @@ void Multiplication(
 
 //! Division of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates a/b(mod p)
-void Division(
+void PFDivision(
 	pfelement * div, 
 	pfelement * a, 
 	pfelement * b, 
