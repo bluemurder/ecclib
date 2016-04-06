@@ -267,11 +267,73 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 	// Present code will read directly the result number of chunks. The caller
 	// of MPIntegerMul function has to ensure that the result was allocated 
 	// with a bitsize equal to the SUM of operands bitsizes.
+	// Definitions for any case
+	chunk a0, a1, b0, b1;
+	chunk m0, m1, m2, m4;
+	chunk V;
+	// If result does not exceed a single chunk, only inner product is 
+	// evaluated. Code is slightly optimized to produce a 1-chunk output
+	if (mul->size == 1)
+	{
+#if ARCHITECTURE_BITS == 8
+		a0 = 0x0f & a->data[0];
+		a1 = (0xf0 & a->data[0]) >> 4;
+		b0 = 0x0f & b->data[0];
+		b1 = (0xf0 & b->data[0]) >> 4;
+		m0 = a0 * b0;
+		m1 = a1 * b0;
+		m2 = a0 * b1;
+		//m3 = a1 * b1;
+		V = (m0 & 0x0f);
+		m4 = (m1 & 0x0f) + (m2 & 0x0f) + (m0 >> 4);
+		V = V + (m4 << 4);
+		//U = m3 + (m1 >> 4) + (m2 >> 4) + (m4 >> 4);
+#elif ARCHITECTURE_BITS == 16
+		a0 = 0x00ff & a->data[0];
+		a1 = (0xff00 & a->data[0]) >> 8;
+		b0 = 0x00ff & b->data[0];
+		b1 = (0xff00 & b->data[0]) >> 8;
+		m0 = a0 * b0;
+		m1 = a1 * b0;
+		m2 = a0 * b1;
+		//m3 = a1 * b1;
+		V = (m0 & 0x00ff);
+		m4 = (m1 & 0x00ff) + (m2 & 0x00ff) + (m0 >> 8);
+		V = V + (m4 << 8);
+		//U = m3 + (m1 >> 8) + (m2 >> 8) + (m4 >> 8);
+#elif ARCHITECTURE_BITS == 64
+		a0 = 0x00000000ffffffff & a->data[0];
+		a1 = (0xffffffff00000000 & a->data[0]) >> 32;
+		b0 = 0x00000000ffffffff & b->data[0];
+		b1 = (0xffffffff00000000 & b->data[0]) >> 32;
+		m0 = a0 * b0;
+		m1 = a1 * b0;
+		m2 = a0 * b1;
+		//m3 = a1 * b1;
+		V = (m0 & 0x00000000ffffffff);
+		m4 = (m1 & 0x00000000ffffffff) + (m2 & 0x00000000ffffffff) + (m0 >> 32);
+		V = V + (m4 << 32);
+		//U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);
+#else
+		a0 = 0x0000ffff & a->data[0];
+		a1 = (0xffff0000 & a->data[0]) >> 16;
+		b0 = 0x0000ffff & b->data[0];
+		b1 = (0xffff0000 & b->data[0]) >> 16;
+		m0 = a0 * b0;
+		m1 = a1 * b0;
+		m2 = a0 * b1;
+		//m3 = a1 * b1;
+		V = (m0 & 0x0000ffff);
+		m4 = (m1 & 0x0000ffff) + (m2 & 0x0000ffff) + (m0 >> 16);
+		V = V + (m4 << 16);
+		//U = m3 + (m1 >> 16) + (m2 >> 16) + (m4 >> 16);
+#endif
+		mul->data[0] = V;
+		return;
+	}
 	unsigned int resultSizeMinusOne = mul->size - 1;
 	unsigned int i, j, k, carry;
-	chunk R0, R1, R2, U, V;
-	chunk m0, m1, m2, m3, m4;
-	chunk a0, a1, b0, b1;
+	chunk R0, R1, R2, U, m3;	
 	R0 = R1 = R2 = 0;
 	for (k = 0; k < resultSizeMinusOne; k++)
 	{
@@ -308,7 +370,18 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					V = V + (m4 << 8);
 					U = m3 + (m1 >> 8) + (m2 >> 8) + (m4 >> 8);
 #elif ARCHITECTURE_BITS == 64
-
+					a0 = 0x00000000ffffffff & a->data[i];
+					a1 = (0xffffffff00000000 & a->data[i]) >> 32;
+					b0 = 0x00000000ffffffff & b->data[j];
+					b1 = (0xffffffff00000000 & b->data[j]) >> 32;
+					m0 = a0 * b0;
+					m1 = a1 * b0;
+					m2 = a0 * b1;
+					m3 = a1 * b1;
+					V = (m0 & 0x00000000ffffffff);
+					m4 = (m1 & 0x00000000ffffffff) + (m2 & 0x00000000ffffffff) + (m0 >> 32);
+					V = V + (m4 << 32);
+					U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);
 #else
 					a0 = 0x0000ffff & a->data[i];
 					a1 = (0xffff0000 & a->data[i]) >> 16;
