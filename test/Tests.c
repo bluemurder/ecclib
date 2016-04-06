@@ -571,6 +571,46 @@ unsigned int testIntegerMul()
 	return retval;
 }
 
+unsigned int testLeftShift()
+{
+	unsigned int retval = 1;
+	wprintf(L"multiprecision left shift test...");
+
+	mpnumber a, result, desired;
+	unsigned int b;
+
+	// 
+	InitNumberByString(&a, "2", 4);
+	b = 3;
+	InitNumberByString(&desired, "10", 4 + 3);
+	InitNumberByString(&result, "0", 4 + 3);
+	MPLeftShift(&result, &a, b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
+	InitNumberByString(&a, "fde57acdd2864eb219800", 84);
+	b = 17;
+	InitNumberByString(&desired, "1fbcaf59ba50c9d64330000000", 84+17);
+	InitNumberByString(&result, "0", 84+17);
+	MPLeftShift(&result, &a, b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
+	if (retval)
+	{
+		wprintf(L"PASSED\n");
+	}
+	else
+	{
+		wprintf(L"failed\n");
+	}
+	return retval;
+}
+
 //! Main routine
 //! \return 0 if some tests failed, 1 if all ok
 int main()
@@ -578,6 +618,7 @@ int main()
 	unsigned int result = 1;
 	result = result && testSumSub();
 	result = result && testAssignment();
+	result = result && testLeftShift();
 	result = result && testRedp192();
 	result = result && testRedp224();
 	result = result && testRedp256();

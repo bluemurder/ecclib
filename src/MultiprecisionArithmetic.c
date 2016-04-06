@@ -188,8 +188,8 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	n = i + 1;
 	// Now n is the number of not null chunks of v
+	n = i + 1;
 	m = n;
 	for (i = u->size - 1;; i--)
 	{
@@ -198,14 +198,46 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	m = i + 1;
 	// Now m is the index to most significant not null chunk of u
-	// Normalize phase (Knuth)
-	chunk d = 0;
-	d = d - 1;
-	d = d / v->data[n - 1];
+	m = i + 1;
+
+	// D1. Normalize phase
+	// Given a base b, the number u is represented as (u_{n-1},...,u_1,u_0)b. 
+	// Normalization factor d must satisfy u_{n-1} >= floor(b/2)
 	mpnumber normalizedu;
 	InitNumber(&normalizedu, m + 1);
+#if ARCHITECTURE_BITS == 8
+	chunk halfword = 0x10;
+#elif ARCHITECTURE_BITS == 16
+	chunk halfword = 0x0100;
+#elif ARCHITECTURE_BITS == 64
+	chunk halfword = 0x0000000100000000;
+#else
+	chunk halfword = 0x00010000;
+#endif
+	// d is a power of 2 so only the number of left shifts, or log_2(d) is 
+	// evaluated.
+	unsigned int log2d = 0;
+	while ((u->data[n - 1] << log2d) >= halfword)
+	{
+		log2d++;
+	}
+	// If d==1, normalization is skipped, normalizedu is set equal to u but 
+	// with an additional word set to 0 on the left  
+	if (log2d == 0)
+	{
+		for (i = 0; i < u->size; i++)
+		{
+			normalizedu.data[i] = u->data[i];
+		}
+		normalizedu.data[m] = 0;
+	}
+	else
+	{
+		MPLeftShift(&normalizedu, u, log2d);
+	}
+
+	// D2. Initialize j phase (Knuth)
 }
 
 void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
@@ -334,7 +366,7 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 	}
 	unsigned int resultSizeMinusOne = a->size + b->size - 1;
 	unsigned int i, j, k, carry;
-	chunk R0, R1, R2, U, m3;	
+	chunk R0, R1, R2, U, m3;
 	R0 = R1 = R2 = 0;
 	for (k = 0; k < resultSizeMinusOne; k++)
 	{
@@ -413,8 +445,82 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		R1 = R2;
 		R2 = 0;
 	}
+	// Present implementation does not assure that result size (in chunks) is
+	// exactly the sum of chunk sizes of operands. The chunk size of the result
+	// is evaluated by adding the bit sizes of operands, so result chunk size 
+	// can equal to the sum of operands chunk sizes, or to the sum of operands 
+	// chunk sizes - 1.
 	if (resultSizeMinusOne == mul->size - 1)
 	{
 		mul->data[resultSizeMinusOne] = R0;
+	}
+}
+
+void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts)
+{
+	// Caller must assure that res is properly allocated
+	// Shift cycle: i is the destination word, j is the source word
+	unsigned int i = res->size - 1;
+	unsigned int j = i - (shifts / ARCHITECTURE_BITS);
+	unsigned int wordShifts = shifts % ARCHITECTURE_BITS;
+	// If positions to shift is multiple of word length, no shift required,
+	// only word replacing
+	if (wordShifts == 0)
+	{
+		for (;; i--, j--)
+		{
+			res->data[i] = a->data[j];
+			if (j == 0)
+			{
+				break;
+			}
+		}
+		// Filling least significant bits with zeros
+		for (;; i--)
+		{
+			res->data[i] = 0;
+			if (i == 0)
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		unsigned int rightShifts = ARCHITECTURE_BITS - wordShifts;
+		// First iteration
+		// Saving exceeding bits from source register
+		chunk exceeds = a->data[j] >> rightShifts;
+		// Shift source word and save in destination word
+		res->data[i] = a->data[j] << wordShifts;
+		if (j == 0)
+		{
+			return;
+		}
+		i--;
+		j--;
+		// Loop for every source register
+		for (; ; i--, j--)
+		{
+			// Saving exceeding bits from source register
+			exceeds = a->data[j] >> rightShifts;
+			// Shift source register and save in dest. register
+			res->data[i] = a->data[j] << wordShifts;
+			// Xoring previous destination register with exceeding bits
+			res->data[i + 1] ^= exceeds;
+			if (j == 0)
+			{
+				break;
+			}
+		}
+		// Filling least significant words with zeros
+		for (;; i--)
+		{
+			res->data[i] = 0;
+			if (i == 0)
+			{
+				break;
+			}
+		}
 	}
 }

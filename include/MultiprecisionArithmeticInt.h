@@ -99,6 +99,9 @@ unsigned int MPEquals(mpnumber * a, mpnumber * b);
 //! algorithm 2.10 [2]
 void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b);
 
+//! Left shift of multiple precision number, with specified number of shifts
+void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts);
+
 //! Long division algorithm [1], computing the quotient of a/b with the 
 //! corresponding remainder. 
 //! \param div The quotient

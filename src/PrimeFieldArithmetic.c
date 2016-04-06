@@ -63,7 +63,7 @@ void InitFieldProperties(
 		characteristics,
 		field->chunksNumber,
 		fieldBitSize);
-	// Precompute some data required by Barret reduction algorithm
+	// Precompute some data required by Barrett reduction algorithm
 	// k = chunks number of field characteristics
 	// b = close to word size
 	// mu = floor(b^{2k} / char)
