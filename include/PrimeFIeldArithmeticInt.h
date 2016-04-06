@@ -19,15 +19,15 @@
 /*!
 * \file PrimeFieldArithmetic.h
 * Header file for prime field arithmetic functions.
-* 
+*
 * Present library is designed to allow deploying on 8, 16, 32 and 64 bit
 * platforms. User have to define globals in "Globals.h" accordingly.
 *
 * First steps to get a working environment:
-* 1) Define a pfproperties object, it will be unique for operating on a 
-* specific field. 
+* 1) Define a pfproperties object, it will be unique for operating on a
+* specific field.
 * 2) Call InitFieldProperties() to set parameters and allocate needed memory.
-* 3) Define some pfelement that will represent elements belonging to the 
+* 3) Define some pfelement that will represent elements belonging to the
 * previously defined field.
 * 4) Call InitElement() to set element values and allocate memory.
 * 5) Now perform operations among field elements.
@@ -43,21 +43,21 @@
 * Cryptography. Springer Professional Computing. Springer, 2004.
 * [2] W. Hasenplaugh, G. Gaubatz, V. Gopal. Fast Modular Reduction.
 * Proceedings of ARITH'07, 2007.
-* [3] A.J. Menezes, P.C. van Oorschot, S.A. Vanstone. Handbook of Applied 
+* [3] A.J. Menezes, P.C. van Oorschot, S.A. Vanstone. Handbook of Applied
 * Cryptography. Taylor & Francis, 2010.
 * [4] D.E. Knuth, The Art of Computer Programming – Seminumerical Algorithms,
 * volume 2, Addison-Wesley, Reading, Massachusetts, 2nd edition, 1981.
-* [5] C. Koc, High-speed RSA implementation, Technical Report, RSA 
+* [5] C. Koc, High-speed RSA implementation, Technical Report, RSA
 * Laboratories, 1994.
-* [6] K. Geddes, S. Czapor, and G. Labahn, Algorithms for Computer Algebra, 
+* [6] K. Geddes, S. Czapor, and G. Labahn, Algorithms for Computer Algebra,
 * Kluwer Academic Publishers, Boston, 1992.
-* 
+*
 *
 * Notes:
-* From [3] some notes on best algorithms for multiprecsion arithmetic are 
+* From [3] some notes on best algorithms for multiprecsion arithmetic are
 * available. In general for modulo reduction, Montgomery reduction and barrett
-* reduction are comparable. Concerning multiplication, the Karatsuba-Ofman 
-* algorithm is considered a valid solution to improve efficiency of the 
+* reduction are comparable. Concerning multiplication, the Karatsuba-Ofman
+* algorithm is considered a valid solution to improve efficiency of the
 * classical multiplication. For a more detailed treatment of the Karatsuba-
 * Ofman algorithm, see Knuth [4], Koc [5], and Geddes, Czapor, and Labahn
 * [6]. A detailed treatment of methods for performing modular multiplication
@@ -74,8 +74,8 @@
 * - Partial Montgomery inversion in Fp (algorithm 2.23)
 * - Montgomery inversion in Fp (algorithm 2.25, including calls to 2.23)
 *
-* Some of above algorithms are included in the sofware implementation timing 
-* analysis described in [1], chapter 5. In such chapter, (+) show best 
+* Some of above algorithms are included in the sofware implementation timing
+* analysis described in [1], chapter 5. In such chapter, (+) show best
 * results.
 */
 
@@ -106,8 +106,8 @@ unsigned int PFEquals(pfelement * a, pfelement * b, pfproperties * field);
 //! Checks if a is greater or equal than b.
 //! \returns 1 if a is greater than or equal to b, 0 otherwise
 unsigned int GreaterOrEqual(
-	pfelement * a, 
-	pfelement * b, 
+	pfelement * a,
+	pfelement * b,
 	pfproperties * field);
 
 //! Sets the specified bit size and characteristics in the field object
@@ -116,7 +116,7 @@ unsigned int GreaterOrEqual(
 //! \param characteristics Hex string describing the field characteristics
 void InitFieldProperties(
 	pfproperties * field,
-	unsigned int fieldBitSize, 
+	unsigned int fieldBitSize,
 	char * characteristics);
 
 //! Sets the specified value expressed via a hex string in the field element 
@@ -138,7 +138,7 @@ void FreeFieldProperties(pfproperties * field);
 //! Algorithm 2.7 [1]
 void PFAddition(
 	pfelement * sum,
-	pfelement * a, 
+	pfelement * a,
 	pfelement * b,
 	pfproperties * field);
 
@@ -146,25 +146,25 @@ void PFAddition(
 //! characteristics, the method evaluates a-b(mod p)
 //! Algorithm 2.8 [1]
 void PFSubtraction(
-	pfelement * sub, 
-	pfelement * a, 
+	pfelement * sub,
+	pfelement * a,
 	pfelement * b,
 	pfproperties * field);
 
 //! Multiplication of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates ab(mod p)
 void PFMultiplication(
-	pfelement * mul, 
-	pfelement * a, 
-	pfelement * b, 
+	pfelement * mul,
+	pfelement * a,
+	pfelement * b,
 	pfproperties * field);
 
 //! Division of a and b over a prime field. Let p the field 
 //! characteristics, the method evaluates a/b(mod p)
 void PFDivision(
-	pfelement * div, 
-	pfelement * a, 
-	pfelement * b, 
+	pfelement * div,
+	pfelement * a,
+	pfelement * b,
 	pfproperties * field);
 
 //! General modulo reduction
@@ -175,20 +175,20 @@ void BarrettReduction(pfelement * red, mpnumber * a, pfproperties * field);
 //! Modified Barrett modulo reduction [2]
 void ModifiedBarretReduction(
 	pfelement * red,
-	mpnumber * a, 
+	mpnumber * a,
 	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^192 − 2^64 − 1 (FIPS 186-4 prime)
 //! Algorithm 2.27 [1]
 void FastReductionFIPSp192(
-	pfelement * red, 
-	pfelement * a, 
+	pfelement * red,
+	pfelement * a,
 	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^224 − 2^96 + 1 (FIPS 186-4 prime)
 //! Algorithm 2.28 [1]
 void FastReductionFIPSp224(
-	pfelement * red, 
+	pfelement * red,
 	pfelement * a,
 	pfproperties * field);
 
@@ -196,7 +196,7 @@ void FastReductionFIPSp224(
 //! (FIPS 186-4 prime)
 //! Algorithm 2.29 [1]
 void FastReductionFIPSp256(
-	pfelement * red, 
+	pfelement * red,
 	pfelement * a,
 	pfproperties * field);
 
@@ -204,15 +204,15 @@ void FastReductionFIPSp256(
 //! (FIPS 186-4 prime)
 //! Algorithm 2.30 [1]
 void FastReductionFIPSp384(
-	pfelement * red, 
-	pfelement * a, 
+	pfelement * red,
+	pfelement * a,
 	pfproperties * field);
 
 //! Fast modulo reduction for p = 2^521 - 1 (FIPS 186-4 prime)
 //! Algorithm 2.31 [1]
 void FastReductionFIPSp521(
-	pfelement * red, 
-	pfelement * a, 
+	pfelement * red,
+	pfelement * a,
 	pfproperties * field);
 
 #endif // CPRIMEFIELFARITHMETICINT_H

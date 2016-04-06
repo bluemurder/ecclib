@@ -444,8 +444,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size = 8bit
 	InitNumberByString(&a, "14", 5);
 	InitNumberByString(&b, "7", 3);
-	InitNumberByString(&desired, "8c", 5+3);
-	InitNumberByString(&result, "0", 5+3);
+	InitNumberByString(&desired, "8c", 5 + 3);
+	InitNumberByString(&result, "0", 5 + 3);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -456,8 +456,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size < 16bit
 	InitNumberByString(&a, "29a", 10);
 	InitNumberByString(&b, "e", 5);
-	InitNumberByString(&desired, "246c", 10+5);
-	InitNumberByString(&result, "0", 10+5);
+	InitNumberByString(&desired, "246c", 10 + 5);
+	InitNumberByString(&result, "0", 10 + 5);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -468,8 +468,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size = 16bit
 	InitNumberByString(&a, "03", 8);
 	InitNumberByString(&b, "34", 8);
-	InitNumberByString(&desired, "9c", 8+8);
-	InitNumberByString(&result, "0", 8+8);
+	InitNumberByString(&desired, "9c", 8 + 8);
+	InitNumberByString(&result, "0", 8 + 8);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -480,8 +480,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size < 32bit
 	InitNumberByString(&a, "b4bd", 16);
 	InitNumberByString(&b, "5a5e", 15);
-	InitNumberByString(&desired, "3fcccf66", 16+15);
-	InitNumberByString(&result, "0", 16+15);
+	InitNumberByString(&desired, "3fcccf66", 16 + 15);
+	InitNumberByString(&result, "0", 16 + 15);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -492,8 +492,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size = 32bit
 	InitNumberByString(&a, "5dcf", 16);
 	InitNumberByString(&b, "f1a7", 16);
-	InitNumberByString(&desired, "588d1109", 16+16);
-	InitNumberByString(&result, "0", 16+16);
+	InitNumberByString(&desired, "588d1109", 16 + 16);
+	InitNumberByString(&result, "0", 16 + 16);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -504,8 +504,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size < 64bit
 	InitNumberByString(&a, "f4dc5721acd43", 55);
 	InitNumberByString(&b, "6", 3);
-	InitNumberByString(&desired, "5bd2a0aca0cf92", 55+3);
-	InitNumberByString(&result, "0", 55+3);
+	InitNumberByString(&desired, "5bd2a0aca0cf92", 55 + 3);
+	InitNumberByString(&result, "0", 55 + 3);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -516,8 +516,8 @@ unsigned int testIntegerMul()
 	// Test for special case result size = 64bit
 	InitNumberByString(&a, "fcde", 17);
 	InitNumberByString(&b, "14cf198fdef", 47);
-	InitNumberByString(&desired, "148de8c1ca37942", 17+47);
-	InitNumberByString(&result, "0", 17+47);
+	InitNumberByString(&desired, "148de8c1ca37942", 17 + 47);
+	InitNumberByString(&result, "0", 17 + 47);
 	MPIntegerMul(&result, &a, &b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);
@@ -592,8 +592,8 @@ unsigned int testLeftShift()
 
 	InitNumberByString(&a, "fde57acdd2864eb219800", 84);
 	b = 17;
-	InitNumberByString(&desired, "1fbcaf59ba50c9d64330000000", 84+17);
-	InitNumberByString(&result, "0", 84+17);
+	InitNumberByString(&desired, "1fbcaf59ba50c9d64330000000", 84 + 17);
+	InitNumberByString(&result, "0", 84 + 17);
 	MPLeftShift(&result, &a, b);
 	retval = retval && MPEquals(&result, &desired);
 	FreeNumber(&a);

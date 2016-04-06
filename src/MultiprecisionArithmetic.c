@@ -180,7 +180,7 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// Note that div and res must be previously allocated:
 
 	// Evaluation of number dimensions
-	unsigned int i, m, n;
+	unsigned int i, j, m, n;
 	for (i = v->size - 1;; i--)
 	{
 		if (i == 0 || v->data[i] == 0)
@@ -201,7 +201,8 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// Now m is the index to most significant not null chunk of u
 	m = i + 1;
 
-	// D1. Normalize phase
+	// D1. Normalize
+
 	// Given a base b, the number u is represented as (u_{n-1},...,u_1,u_0)b. 
 	// Normalization factor d must satisfy u_{n-1} >= floor(b/2)
 	mpnumber normalizedu;
@@ -237,7 +238,29 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 		MPLeftShift(&normalizedu, u, log2d);
 	}
 
-	// D2. Initialize j phase (Knuth)
+	// D2. Initialize j
+	j = m;
+
+	// D3. Calculate hat(q)
+
+	// hat(q) = floor( (b*u_{j+n} + u_{j+n-1}) / u_{n-1} )
+	// hat(r) = remainder of division above
+	// Test: if hat(q) == b or hat(q) > b*hat(r) + u_{j+n-2} :
+	// - Decrease hat(q) by 1
+	// - Increase hat(r) by u_{n-1}
+	// If hat(r) < b, repeat the test
+
+	// D4. Multiply and subtract
+
+	// Replace (u_{j+n}, ..., u_{j}) with 
+	// (u_{j+n}, ..., u_{j}) - hat(q)*(u_{n-1}, ..., u_0)
+
+	// If result is negative, replace it with its b's complement, and save a 
+	// borrow
+
+	// D5. Test remainder
+
+	// If borrow, 
 }
 
 void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
@@ -363,7 +386,7 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 #endif
 		mul->data[0] = V;
 		return;
-	}
+}
 	unsigned int resultSizeMinusOne = a->size + b->size - 1;
 	unsigned int i, j, k, carry;
 	chunk R0, R1, R2, U, m3;
@@ -437,9 +460,9 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					ChunksSum(&R1, &carry, R1, U, carry);
 					// R2 = R2 + c
 					R2 = R2 + carry;
-				}
 			}
 		}
+	}
 		mul->data[k] = R0;
 		R0 = R1;
 		R1 = R2;
@@ -500,7 +523,7 @@ void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts)
 		i--;
 		j--;
 		// Loop for every source register
-		for (; ; i--, j--)
+		for (;; i--, j--)
 		{
 			// Saving exceeding bits from source register
 			exceeds = a->data[j] >> rightShifts;

@@ -229,7 +229,7 @@ void PFDivision(
 
 void BarrettReduction(
 	pfelement * red,
-	mpnumber * a, 
+	mpnumber * a,
 	pfproperties * field)
 {
 	//
@@ -621,7 +621,7 @@ void FastReductionFIPSp192(
 
 void FastReductionFIPSp224(
 	pfelement * red,
-	pfelement * a, 
+	pfelement * a,
 	pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
@@ -1970,8 +1970,8 @@ void FastReductionFIPSp256(
 }
 
 void FastReductionFIPSp384(
-	pfelement * red, 
-	pfelement * a, 
+	pfelement * red,
+	pfelement * a,
 	pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
@@ -3215,7 +3215,7 @@ void FastReductionFIPSp384(
 
 void FastReductionFIPSp521(
 	pfelement * red,
-	pfelement * a, 
+	pfelement * a,
 	pfproperties * field)
 {
 #if ARCHITECTURE_BITS == 8
