@@ -5,14 +5,15 @@ Efficient library for cryptographic operations on elliptic curves.
 Present library is designed to allow deploying on 8, 16, 32 and 64 bit platforms. User have to define word size in "Globals.h" accordingly. The source code is in C language to allow deploying on the largest devices spectrum possible.
 
 ## Architecture
-Present library is organized by hierarchic components; functions at level _i_ are algorithms built exploiting ones at _i-1_ level, and are building blocks for _i+1_ level algorithms. 
+Present library is organized by hierarchic components, or groups of functions. Functions at level _i_ are algorithms built exploiting ones at _i-1_ level, and are building blocks for _i+1_ level algorithms. List of components:
+
 1. Multiprecision positive integer arithmetic functions (under completion)
 2. Prime field arithmetic functions (under completion)
 3. Elliptic curve arithmetic functions (to be defined)
 4. Elliptic curve-based protocols (to be defined)
 
 ## Tests
-In `test` folder shows C examples for testing the correctness of functions, and Wolfram Mathematica(R) codes allowing test vectors generation.
+The `test` folder shows C examples for testing the correctness of functions, and Wolfram Mathematica(R) codes allowing test vectors generation.
 
 ## References
 + A.J. Menezes, P.C. van Oorschot, S.A. Vanstone. Handbook of Applied Cryptography. Taylor & Francis, 2010.
