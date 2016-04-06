@@ -267,12 +267,11 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 	// Present code will read directly the result number of chunks. The caller
 	// of MPIntegerMul function has to ensure that the result was allocated 
 	// with a bitsize equal to the SUM of operands bitsizes.
-	// Definitions for any case
 	chunk a0, a1, b0, b1;
 	chunk m0, m1, m2, m4;
 	chunk V;
 	// If result does not exceed a single chunk, only inner product is 
-	// evaluated. Code is slightly optimized to produce a 1-chunk output
+	// evaluated. Code is slightly optimized to produce a 1-chunk output.
 	if (mul->size == 1)
 	{
 #if ARCHITECTURE_BITS == 8
@@ -311,7 +310,9 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		m2 = a0 * b1;
 		//m3 = a1 * b1;
 		V = (m0 & 0x00000000ffffffff);
-		m4 = (m1 & 0x00000000ffffffff) + (m2 & 0x00000000ffffffff) + (m0 >> 32);
+		m4 = (m1 & 0x00000000ffffffff) +
+			(m2 & 0x00000000ffffffff) + 
+			(m0 >> 32);
 		V = V + (m4 << 32);
 		//U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);
 #else
@@ -331,7 +332,7 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		mul->data[0] = V;
 		return;
 	}
-	unsigned int resultSizeMinusOne = mul->size - 1;
+	unsigned int resultSizeMinusOne = a->size + b->size - 1;
 	unsigned int i, j, k, carry;
 	chunk R0, R1, R2, U, m3;	
 	R0 = R1 = R2 = 0;
@@ -379,7 +380,9 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					m2 = a0 * b1;
 					m3 = a1 * b1;
 					V = (m0 & 0x00000000ffffffff);
-					m4 = (m1 & 0x00000000ffffffff) + (m2 & 0x00000000ffffffff) + (m0 >> 32);
+					m4 = (m1 & 0x00000000ffffffff) + 
+						(m2 & 0x00000000ffffffff) + 
+						(m0 >> 32);
 					V = V + (m4 << 32);
 					U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);
 #else
@@ -410,5 +413,8 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		R1 = R2;
 		R2 = 0;
 	}
-	mul->data[resultSizeMinusOne] = R0;
+	if (resultSizeMinusOne == mul->size - 1)
+	{
+		mul->data[resultSizeMinusOne] = R0;
+	}
 }
