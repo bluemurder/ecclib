@@ -262,13 +262,18 @@ unsigned int MPEquals(mpnumber * a, mpnumber * b)
 
 void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 {
-	unsigned int totalsize = a->size + b->size;
+	// Original code by Knuth refers to equal size operands (a and b with t 
+	// number of chunks). This lead k to run from 0 to 2t-2.
+	// Present code will read directly the result number of chunks. The caller
+	// of MPIntegerMul function has to ensure that the result was allocated 
+	// with a bitsize equal to the SUM of operands bitsizes.
+	unsigned int resultSizeMinusOne = mul->size - 1;
 	unsigned int i, j, k, carry;
 	chunk R0, R1, R2, U, V;
-	chunk m0, m1, m2;
+	chunk m0, m1, m2, m3, m4;
 	chunk a0, a1, b0, b1;
 	R0 = R1 = R2 = 0;
-	for (k = 0; k < totalsize - 1; k++)
+	for (k = 0; k < resultSizeMinusOne; k++)
 	{
 		for (i = 0; i < a->size; i++)
 		{
@@ -281,24 +286,42 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					a1 = (0xf0 & a->data[i]) >> 4;
 					b0 = 0x0f & b->data[j];
 					b1 = (0xf0 & b->data[j]) >> 4;
-					V = a0 * b0;
+					m0 = a0 * b0;
 					m1 = a1 * b0;
 					m2 = a0 * b1;
-					U = a1 * b1;
-					// V += (sum of m1,m2 leftshifted by 4)
-					m0 = m1 + m2;
-					V = V + (m0 << 4);
-					// U += 1 if last sum included a carry
-					if (m0 & 0xf0)
-					{
-						U = U + 1;
-					}
+					m3 = a1 * b1;
+					V = (m0 & 0x0f);
+					m4 = (m1 & 0x0f) + (m2 & 0x0f) + (m0 >> 4);
+					V = V + (m4 << 4);
+					U = m3 + (m1 >> 4) + (m2 >> 4) + (m4 >> 4);
 #elif ARCHITECTURE_BITS == 16
-
+					a0 = 0x00ff & a->data[i];
+					a1 = (0xff00 & a->data[i]) >> 8;
+					b0 = 0x00ff & b->data[j];
+					b1 = (0xff00 & b->data[j]) >> 8;
+					m0 = a0 * b0;
+					m1 = a1 * b0;
+					m2 = a0 * b1;
+					m3 = a1 * b1;
+					V = (m0 & 0x00ff);
+					m4 = (m1 & 0x00ff) + (m2 & 0x00ff) + (m0 >> 8);
+					V = V + (m4 << 8);
+					U = m3 + (m1 >> 8) + (m2 >> 8) + (m4 >> 8);
 #elif ARCHITECTURE_BITS == 64
 
 #else
-
+					a0 = 0x0000ffff & a->data[i];
+					a1 = (0xffff0000 & a->data[i]) >> 16;
+					b0 = 0x0000ffff & b->data[j];
+					b1 = (0xffff0000 & b->data[j]) >> 16;
+					m0 = a0 * b0;
+					m1 = a1 * b0;
+					m2 = a0 * b1;
+					m3 = a1 * b1;
+					V = (m0 & 0x0000ffff);
+					m4 = (m1 & 0x0000ffff) + (m2 & 0x0000ffff) + (m0 >> 16);
+					V = V + (m4 << 16);
+					U = m3 + (m1 >> 16) + (m2 >> 16) + (m4 >> 16);
 #endif
 					// c,R0 = sum(R0, V)
 					ChunksSum(&R0, &carry, R0, V, 0);
@@ -314,5 +337,5 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		R1 = R2;
 		R2 = 0;
 	}
-	mul->data[totalsize - 1] = R0;
+	mul->data[resultSizeMinusOne] = R0;
 }

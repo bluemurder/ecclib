@@ -450,6 +450,17 @@ unsigned int testIntegerMul()
 	FreeNumber(&result);
 	FreeNumber(&desired);
 
+	InitNumberByString(&a, "a4fced", 33);
+	InitNumberByString(&b, "ffeee1", 33);
+	InitNumberByString(&desired, "a4f1e439a24d", 66);
+	InitNumberByString(&result, "0", 66);
+	MPIntegerMul(&result, &a, &b);
+	retval = retval && MPEquals(&result, &desired);
+	FreeNumber(&a);
+	FreeNumber(&b);
+	FreeNumber(&result);
+	FreeNumber(&desired);
+
 	InitNumberByString(&a, "3743fc000accaa4fced", 87);
 	InitNumberByString(&b, "51666aeffeee1", 88);
 	InitNumberByString(&desired, "11929ee8614830a282555ef28439a24d", 87 + 88);

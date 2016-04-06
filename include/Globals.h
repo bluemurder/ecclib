@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 // Define here the target architecture bit number
-#define ARCHITECTURE_BITS 8
+#define ARCHITECTURE_BITS 32
 
 #if ARCHITECTURE_BITS == 8
 typedef uint8_t chunk;
