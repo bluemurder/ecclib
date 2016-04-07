@@ -83,13 +83,21 @@ void InitNumber(mpnumber * number, unsigned int chunksNumber);
 //! Erase the memory of internal members of number
 void FreeNumber(mpnumber * number);
 
-//! Sums up two chunks with carry
-void ChunksSum(
+//! Sums two chunks with carry
+void ChunksAddition(
 	chunk * result,
 	unsigned int * carry,
 	chunk a,
 	chunk b,
 	unsigned int carryin);
+
+//! Subtract two chunks with borrow
+void ChunksSubtraction(
+	chunk * result,
+	unsigned int * borrow,
+	chunk a,
+	chunk b,
+	unsigned int borrowin);
 
 //! Checks if a is equal to b
 //! \returns 1 if a is equal to b, 0 otherwise

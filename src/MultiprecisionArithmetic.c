@@ -279,7 +279,7 @@ void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
 	//}
 }
 
-void ChunksSum(
+void ChunksAddition(
 	chunk * result,
 	unsigned int * carry,
 	chunk a,
@@ -295,6 +295,25 @@ void ChunksSum(
 	{
 		*result = a + b;
 		*carry = (a > *result);
+	}
+}
+
+void ChunksSubtraction(
+	chunk * result,
+	unsigned int * borrow,
+	chunk a,
+	chunk b,
+	unsigned int borrowin)
+{
+	if (borrowin)
+	{
+		*result = a - b - borrowin;
+		*borrow = (a <= *result);
+	}
+	else
+	{
+		*result = a - b;
+		*borrow = (a < *result);
 	}
 }
 
@@ -386,7 +405,7 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 #endif
 		mul->data[0] = V;
 		return;
-}
+	}
 	unsigned int resultSizeMinusOne = a->size + b->size - 1;
 	unsigned int i, j, k, carry;
 	chunk R0, R1, R2, U, m3;
@@ -455,14 +474,14 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					U = m3 + (m1 >> 16) + (m2 >> 16) + (m4 >> 16);
 #endif
 					// c,R0 = sum(R0, V)
-					ChunksSum(&R0, &carry, R0, V, 0);
+					ChunksAddition(&R0, &carry, R0, V, 0);
 					// c,R1 = sum(R1 + U + c)
-					ChunksSum(&R1, &carry, R1, U, carry);
+					ChunksAddition(&R1, &carry, R1, U, carry);
 					// R2 = R2 + c
 					R2 = R2 + carry;
+				}
 			}
 		}
-	}
 		mul->data[k] = R0;
 		R0 = R1;
 		R1 = R2;

@@ -54,7 +54,7 @@
 *
 *
 * Notes:
-* From [3] some notes on best algorithms for multiprecsion arithmetic are
+* From [3] some notes on best algorithms for multiprecision arithmetic are
 * available. In general for modulo reduction, Montgomery reduction and barrett
 * reduction are comparable. Concerning multiplication, the Karatsuba-Ofman
 * algorithm is considered a valid solution to improve efficiency of the

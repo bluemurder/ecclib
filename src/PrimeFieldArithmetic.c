@@ -121,41 +121,23 @@ void PFAddition(
 	// Binary sum
 	unsigned int carry = 0;
 	unsigned int borrow = 0;
-	chunk firstOperand;
 	unsigned int i;
 	unsigned int equals = 1;
 	for (i = 0; i < field->chunksNumber; i++)
 	{
-		if (carry)
-		{
-			sum->data[i] = a->data[i] + b->data[i] + carry;
-			carry = (a->data[i] >= sum->data[i]);
-		}
-		else
-		{
-			sum->data[i] = a->data[i] + b->data[i];
-			carry = (a->data[i] > sum->data[i]);
-		}
+		ChunksAddition(&(sum->data[i]), &carry, a->data[i], b->data[i], carry);
 	}
 	// If carry, or if sum greater or equal to p: modulo reduction
 	if (carry || GreaterOrEqual(sum, &(field->characteristics), field))
 	{
 		for (i = 0; i < field->chunksNumber; i++)
 		{
-			if (borrow)
-			{
-				firstOperand = sum->data[i];
-				sum->data[i] = sum->data[i] -
-					field->characteristics.data[i] -
-					borrow;
-				borrow = (sum->data[i] >= firstOperand);
-			}
-			else
-			{
-				firstOperand = sum->data[i];
-				sum->data[i] = sum->data[i] - field->characteristics.data[i];
-				borrow = (sum->data[i] > firstOperand);
-			}
+			ChunksSubtraction(
+				&(sum->data[i]),
+				&borrow,
+				sum->data[i],
+				field->characteristics.data[i],
+				borrow);
 		}
 	}
 }
@@ -173,36 +155,24 @@ void PFSubtraction(
 	unsigned int i;
 	for (i = 0; i < field->chunksNumber; i++)
 	{
-		if (borrow)
-		{
-			sub->data[i] = a->data[i] - b->data[i] - borrow;
-			borrow = (a->data[i] <= sub->data[i]);
-		}
-		else
-		{
-			sub->data[i] = a->data[i] - b->data[i];
-			borrow = (a->data[i] < sub->data[i]);
-		}
+		ChunksSubtraction(
+			&(sub->data[i]),
+			&borrow,
+			a->data[i],
+			b->data[i],
+			borrow);
 	}
 	// If borrow, modulo reduction
 	if (borrow)
 	{
 		for (i = 0; i < field->chunksNumber; i++)
 		{
-			if (carry)
-			{
-				firstOperand = sub->data[i];
-				sub->data[i] = sub->data[i] +
-					field->characteristics.data[i] +
-					carry;
-				carry = (sub->data[i] <= firstOperand);
-			}
-			else
-			{
-				firstOperand = sub->data[i];
-				sub->data[i] = sub->data[i] + field->characteristics.data[i];
-				carry = (sub->data[i] < firstOperand);
-			}
+			ChunksAddition(
+				&(sub->data[i]),
+				&carry,
+				sub->data[i],
+				field->characteristics.data[i],
+				carry);
 		}
 	}
 }
