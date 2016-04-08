@@ -25,6 +25,8 @@
 * volume 2, Addison-Wesley, Reading, Massachusetts, 2nd edition, 1981.
 * [2] D. Hankerson, S. Vanstone, and A.J. Menezes. Guide to Elliptic Curve
 * Cryptography. Springer Professional Computing. Springer, 2004.
+* [3] D. Harvey, and P. Zimmermann. Short division of long integers. Computer
+* Arithmetic (ARITH), 2011 20th IEEE Symposium on. IEEE, 2011.
 */
 
 #ifndef MULTIPRECISIONARITHMETICINT_H
@@ -118,12 +120,8 @@ void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts);
 //! \param v The divisor
 void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v);
 
-//! Short division algorithm [1], computing the quotient of a/b with the 
-//! corresponding remainder, with b as a single precision number.
-//! \param div The quotient
-//! \param rem The remainder
-//! \param a The dividend
-//! \param b The divisor
-void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b);
+//! Short division algorithm inspired by an implementation of B.S. Kaliski Jr.
+//! It works only for 2-word dividend, 1-word divisor and 1-word quotient.
+void ChunksDivisionSingleDivisor(chunk * div, chunk * a, chunk b);
 
 #endif // MULTIPRECISIONARITHMETICINT_H

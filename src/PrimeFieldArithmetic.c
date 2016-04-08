@@ -151,7 +151,6 @@ void PFSubtraction(
 	// Binary subtraction
 	unsigned int carry = 0;
 	unsigned int borrow = 0;
-	chunk firstOperand;
 	unsigned int i;
 	for (i = 0; i < field->chunksNumber; i++)
 	{

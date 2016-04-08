@@ -19,6 +19,7 @@ The `test` folder shows C examples for testing the correctness of functions, and
 + A.J. Menezes, P.C. van Oorschot, S.A. Vanstone. Handbook of Applied Cryptography. Taylor & Francis, 2010.
 + D. Hankerson, A.J. Menezes, S.A. Vanstone. Guide to Elliptic Curve Cryptography. Springer, 2004.
 + D.E. Knuth, The Art of Computer Programming – Seminumerical Algorithms, volume 2, Addison-Wesley, Reading, Massachusetts, 2nd edition, 1981.
++ D. Harvey, and P. Zimmermann. Short division of long integers. Computer Arithmetic (ARITH), 2011 20th IEEE Symposium on. IEEE, 2011.
 + W. Hasenplaugh, G. Gaubatz, V. Gopal. Fast Modular Reduction. Proceedings of ARITH'07, 2007.
 + NIST FIPS 186-4, available at http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
 + Random number generator, available at https://www.random.org/bytes/

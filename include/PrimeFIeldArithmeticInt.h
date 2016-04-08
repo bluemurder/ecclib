@@ -125,7 +125,10 @@ void InitFieldProperties(
 //! \param element The target element to write
 //! \param hexString The string value to write
 //! \param field The object storing field data
-void InitElementByString(pfelement * element, char * hexString, pfproperties * field);
+void InitElementByString(
+	pfelement * element, 
+	char * hexString,
+	pfproperties * field);
 
 //! Erase the memory of internal members of element
 void FreeElement(pfelement * element);

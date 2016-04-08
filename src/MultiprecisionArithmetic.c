@@ -177,7 +177,7 @@ void FreeNumber(mpnumber * number)
 
 void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 {
-	// Note that div and res must be previously allocated:
+	// Note that div and res must be previously allocated
 
 	// Evaluation of number dimensions
 	unsigned int i, j, m, n;
@@ -244,6 +244,19 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// D3. Calculate hat(q)
 
 	// hat(q) = floor( (b*u_{j+n} + u_{j+n-1}) / u_{n-1} )
+	mpnumber hatq;
+	chunk hatqdata[2];
+	hatq.data = hatqdata;
+	hatq.size = 2;
+	hatq.data[1] = normalizedu.data[j + n] / normalizedu.data[n - 1];
+	hatq.data[0] = normalizedu.data[j + n - 1] / normalizedu.data[n - 1];
+	mpnumber hatr;
+	chunk hatrdata;
+	hatr.data = &hatrdata;
+	hatr.size = 1;
+	hatr.data[0] = normalizedu.data[n - 1];
+	//ShortDivision(&hatq, &hatr, )
+
 	// hat(r) = remainder of division above
 	// Test: if hat(q) == b or hat(q) > b*hat(r) + u_{j+n-2} :
 	// - Decrease hat(q) by 1
@@ -261,22 +274,105 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// D5. Test remainder
 
 	// If borrow, 
+
+	FreeNumber(&normalizedu);
 }
 
-void ShortDivision(mpnumber * div, mpnumber * rem, mpnumber * a, mpnumber * b)
+// TODO test again
+void ChunksDivisionSingleDivisor(chunk * div, chunk * a, chunk b)
 {
-	// Short division requires that divisor presents only one data chunk. So 
-	// present algorithm takes care of only least significant chunk, ignoring 
-	// possible other ones.
-	// Note that div and res must be previously allocated:
-	// div has same mpnumber size;
-	// rem has size 1
-	//unsigned int i,j;
-	//chunk partial;
-	//for (i = 0,j=a->size-1; i < a->size; i++,j--)
-	//{
-	//	partial = a->data[j] - 
-	//}
+	chunk t[2], u, v;
+	chunk resultHigh, resultLow, bHigh, bLow;
+	chunk max, halfMax;
+	unsigned int shiftBits;
+
+#if ARCHITECTURE_BITS == 8
+	max = 0xff;
+	halfMax = 0xf;
+	shiftBits = 4;
+#elif ARCHITECTURE_BITS == 16
+	max = 0xffff;
+	halfMax = 0xff;
+	shiftBits = 8;
+#elif ARCHITECTURE_BITS == 64
+	max = 0xffffffffffffffff;
+	halfMax = 0xffffffff;
+	shiftBits = 32;
+#else
+	max = 0xffffffff;
+	halfMax = 0xffff;
+	shiftBits = 16;
+#endif
+
+	bHigh = b >> shiftBits;
+	bLow = b & halfMax;
+
+	t[0] = a[0];
+	t[1] = a[1];
+
+	// Estimation of high result part
+	if (bHigh == halfMax)
+	{
+		resultHigh = (t[1] >> shiftBits);
+	}
+	else
+	{
+		resultHigh = (t[1] / (bHigh + 1));
+	}
+	u = resultHigh * bLow;
+	v = resultHigh * bHigh;
+	if ((t[0] -= (u << shiftBits)) > (max - (u << shiftBits)))
+	{
+		t[1]--;
+	}
+	t[1] -= (u >> shiftBits);
+	t[1] -= v;
+
+	// Evaluation of high result part
+	while ((t[1] > bHigh) ||
+		((t[1] == bHigh) && (t[0] >= (bLow << shiftBits))))
+	{
+		if ((t[0] -= (bLow << shiftBits)) > max - (bLow << shiftBits))
+		{
+			t[1]--;
+		}
+		t[1] -= bHigh;
+		resultHigh++;
+	}
+
+	// Estimation of low result part
+	if (bHigh == halfMax)
+	{
+		resultLow = t[1] & halfMax;
+	}
+	else
+	{
+		resultLow = (((t[1] << shiftBits) + (t[0] >> shiftBits)) /
+			(bHigh + 1));
+	}
+	u = resultLow * bLow;
+	v = resultLow * bHigh;
+	if ((t[0] -= u) > (max - u))
+	{
+		t[1]--;
+	}
+	if ((t[0] -= (v << shiftBits)) > (max - (v << shiftBits)))
+	{
+		t[1]--;
+	}
+	t[1] -= (v >> shiftBits);
+
+	// Evaluation of low result part
+	while ((t[1] > 0) || ((t[1] == 0) && t[0] >= b))
+	{
+		if ((t[0] -= b) > (max - b))
+		{
+			t[1]--;
+		}
+		resultLow++;
+	}
+
+	*div = (resultHigh << shiftBits) + resultLow;
 }
 
 void ChunksAddition(
