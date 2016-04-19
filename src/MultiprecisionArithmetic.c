@@ -177,29 +177,128 @@ void FreeNumber(mpnumber * number)
 
 void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 {
-	// Note that div and res must be previously allocated
+#if ARCHITECTURE_BITS == 8
+	chunk b = 0x10;
+	chunk lowHalfMask = 0x0f;
+	chunk highHalfMask = 0xf0;
+	unsigned int halfBits = 4;
+#elif ARCHITECTURE_BITS == 16
+	chunk b = 0x100;
+	chunk lowHalfMask = 0x0ff;
+	chunk highHalfMask = 0xff00;
+	unsigned int halfBits = 8;
+#elif ARCHITECTURE_BITS == 64
+	chunk b = 0x100000000;
+	chunk lowHalfMask = 0x0ffffffff;
+	chunk highHalfMask = 0xffffffff00000000;
+	unsigned int halfBits = 32;
+#else
+	chunk b = 0x10000;
+	chunk lowHalfMask = 0x0ffff;
+	chunk highHalfMask = 0xffff0000;
+	unsigned int halfBits = 16;
+#endif
+	// Note that div and rem must be previously allocated. Given m the size in 
+	// chunks of u, and n the size in chunks of v, and m >= n, div and rem must
+	// be of size equal to m.
+
+	// To allow the computation of word-by-word operations, the operands will
+	// be stored into multiprecision numbers with a double chunk size; every 
+	// chunk will contain a half chunk of the original operand.
 
 	// Evaluation of number dimensions
 	unsigned int i, j, m, n;
 	for (i = v->size - 1;; i--)
 	{
-		if (i == 0 || v->data[i] == 0)
+		if (i == 0 || v->data[i] != 0)
 		{
 			break;
 		}
 	}
 	// Now n is the number of not null chunks of v
 	n = i + 1;
-	m = n;
+
 	for (i = u->size - 1;; i--)
 	{
-		if (i == 0 || u->data[i] == 0)
+		if (i == 0 || u->data[i] != 0)
 		{
 			break;
 		}
 	}
 	// Now m is the index to most significant not null chunk of u
 	m = i + 1;
+
+	// Check constraints, return if invalid
+	if (m < n || n == 0)
+	{
+		return;
+	}
+
+	// Allocation of space for all the halfwords
+	mpnumber doubledu, doubledv, doubleddiv, doubledrem;
+	InitNumber(&doubledu, 2 * m);
+	InitNumber(&doubledv, 2 * n);
+	InitNumber(&doubleddiv, 2 * div->size);
+	InitNumber(&doubledrem, 2 * rem->size);
+
+	// Reset result bits
+	for (i = 0; i < div->size; i++)
+	{
+		doubleddiv.data[i] = 0;
+		doubleddiv.data[i + 1] = 0;
+	}
+	for (i = 0; i < rem->size; i++)
+	{
+		doubledrem.data[i] = 0;
+		doubledrem.data[i + 1] = 0;
+	}
+
+	// Copy operands on doubled size buffers
+	for (i = 0; i < n; i++)
+	{
+		doubledu.data[i] = u->data[i] & lowHalfMask;
+		doubledu.data[i + 1] = (u->data[i] & highHalfMask) >> halfBits;
+		doubledv.data[i] = v->data[i] & lowHalfMask;
+		doubledv.data[i + 1] = (v->data[i] & highHalfMask) >> halfBits;
+	}
+	for (; i < m; i++)
+	{
+		doubledu.data[i] = u->data[i] & lowHalfMask;
+		doubledu.data[i + 1] = (u->data[i] & highHalfMask) >> halfBits;
+	}
+
+	// Take care of the case of a single-digit divisor here.
+	if (n == 1)
+	{
+		if (doubledv.data[1] == 0)
+		{
+			chunk k = 0;
+			for (j = m - 1;; j--)
+			{
+				doubleddiv.data[j] = (k * b + doubledu.data[j]) /
+					doubledv.data[0];
+				k = (k*b + doubledu.data[j]) -
+					doubleddiv.data[j] * doubledv.data[0];
+				if (j == 0)
+				{
+					break;
+				}
+			}
+			rem->data[0] = k;
+			for (i = 0; i < div->size; i++)
+			{
+				div->data[i] = doubleddiv.data[2 * i];
+				div->data[i] |= (doubleddiv.data[2 * i + 1]) << halfBits;
+			}
+			FreeNumber(&doubledu);
+			FreeNumber(&doubledv);
+			FreeNumber(&doubleddiv);
+			FreeNumber(&doubledrem);
+			return;
+		}
+	}
+
+
 
 	// D1. Normalize
 
@@ -276,7 +375,13 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// If borrow, 
 
 	FreeNumber(&normalizedu);
+	FreeNumber(&doubledu);
+	FreeNumber(&doubledv);
+	FreeNumber(&doubleddiv);
+	FreeNumber(&doubledrem);
 }
+
+
 
 // TODO test again
 void ChunksDivisionSingleDivisor(chunk * div, chunk * a, chunk b)
@@ -481,7 +586,7 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 		//m3 = a1 * b1;
 		V = (m0 & 0x00000000ffffffff);
 		m4 = (m1 & 0x00000000ffffffff) +
-			(m2 & 0x00000000ffffffff) + 
+			(m2 & 0x00000000ffffffff) +
 			(m0 >> 32);
 		V = V + (m4 << 32);
 		//U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);
@@ -550,8 +655,8 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 					m2 = a0 * b1;
 					m3 = a1 * b1;
 					V = (m0 & 0x00000000ffffffff);
-					m4 = (m1 & 0x00000000ffffffff) + 
-						(m2 & 0x00000000ffffffff) + 
+					m4 = (m1 & 0x00000000ffffffff) +
+						(m2 & 0x00000000ffffffff) +
 						(m0 >> 32);
 					V = V + (m4 << 32);
 					U = m3 + (m1 >> 32) + (m2 >> 32) + (m4 >> 32);

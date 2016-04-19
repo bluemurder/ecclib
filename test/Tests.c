@@ -643,6 +643,36 @@ unsigned int testChunksDiv()
 	return retval;
 }
 
+unsigned int testLongDiv()
+{
+	unsigned int retval = 1;
+	wprintf(L"Long division test...");
+
+	mpnumber a,b,div,rem;
+	InitNumberByString(&a, "aaff", 16);
+	InitNumberByString(&b, "fe", 8);
+	InitNumberByString(&div, "0", 8);
+	InitNumberByString(&rem, "0", 8);
+	LongDivision(&div, &rem, &a, &b);
+	retval = retval && (div.data[0] == 0xac) && (rem.data[0] == 0);
+
+	//a[1] = 0x82;
+	//a[0] = 0x4f;
+	//b = 0xcc;
+	//ChunksDivisionSingleDivisor(&res, a, b);
+	//retval = retval && (res == 0xa3);
+
+	if (retval)
+	{
+		wprintf(L"PASSED\n");
+	}
+	else
+	{
+		wprintf(L"failed\n");
+	}
+	return retval;
+}
+
 //! Main routine
 //! \return 0 if some tests failed, 1 if all ok
 int main()
@@ -658,6 +688,7 @@ int main()
 	result = result && testRedp521();
 	result = result && testIntegerMul();
 	//result = result && testChunksDiv();
+	result = result && testLongDiv();
 
 	return result;
 }
