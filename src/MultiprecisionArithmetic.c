@@ -207,7 +207,7 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	// chunk will contain a half chunk of the original operand.
 
 	// Evaluation of number dimensions
-	unsigned int i, j, m, n;
+	unsigned int i, j, m1, n1;
 	for (i = v->size - 1;; i--)
 	{
 		if (i == 0 || v->data[i] != 0)
@@ -215,8 +215,8 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now n is the number of not null chunks of v
-	n = i + 1;
+	// Now n1 is the number of not null chunks of v
+	n1 = i + 1;
 
 	for (i = u->size - 1;; i--)
 	{
@@ -225,21 +225,21 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now m is the index to most significant not null chunk of u
-	m = i + 1;
+	// Now m1 is the number of not null chunks of u
+	m1 = i + 1;
 
 	// Check constraints, return if invalid
-	if (m < n || n == 0)
+	if (m1 < n1 || n1 == 0)
 	{
 		return;
 	}
 
 	// Allocation of space for all the halfwords
 	mpnumber doubledu, doubledv, doubleddiv, doubledrem;
-	InitNumber(&doubledu, 2 * m);
-	InitNumber(&doubledv, 2 * n);
-	InitNumber(&doubleddiv, 2 * div->size);
-	InitNumber(&doubledrem, 2 * rem->size);
+	InitNumber(&doubledu, 2 * m1);
+	InitNumber(&doubledv, 2 * n1);
+	InitNumber(&doubleddiv, 2 * div->size); // TODO check if correct dimension
+	InitNumber(&doubledrem, 2 * rem->size); // TODO check if correct dimension
 
 	// Reset result bits
 	for (i = 0; i < div->size; i++)
@@ -254,48 +254,67 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	}
 
 	// Copy operands on doubled size buffers
-	for (i = 0; i < n; i++)
+	for (i = 0; i < n1; i++)
 	{
-		doubledu.data[i] = u->data[i] & lowHalfMask;
-		doubledu.data[i + 1] = (u->data[i] & highHalfMask) >> halfBits;
-		doubledv.data[i] = v->data[i] & lowHalfMask;
-		doubledv.data[i + 1] = (v->data[i] & highHalfMask) >> halfBits;
+		doubledu.data[i<<1] = u->data[i] & lowHalfMask;
+		doubledu.data[(i<<1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
+		doubledv.data[i<<1] = v->data[i] & lowHalfMask;
+		doubledv.data[(i<<1) + 1] = (v->data[i] & highHalfMask) >> halfBits;
 	}
-	for (; i < m; i++)
+	for (; i < m1; i++)
 	{
-		doubledu.data[i] = u->data[i] & lowHalfMask;
-		doubledu.data[i + 1] = (u->data[i] & highHalfMask) >> halfBits;
+		doubledu.data[i<<1] = u->data[i] & lowHalfMask;
+		doubledu.data[(i<<1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
 	}
+
+	// Evaluation of doubled arrays dimension
+	unsigned int m, n;
+	for (i = doubledv.size - 1;; i--)
+	{
+		if (i == 0 || doubledv.data[i] != 0)
+		{
+			break;
+		}
+	}
+	// Now n is the number of not null chunks of doubledv
+	n = i + 1;
+
+	for (i = doubledu.size - 1;; i--)
+	{
+		if (i == 0 || doubledu.data[i] != 0)
+		{
+			break;
+		}
+	}
+	// Now m is the number of not null chunks of doubledu
+	m = i + 1;
 
 	// Take care of the case of a single-digit divisor here.
 	if (n == 1)
 	{
-		if (doubledv.data[1] == 0)
+		chunk k = 0;
+		for (j = m - 1;; j--)
 		{
-			chunk k = 0;
-			for (j = m - 1;; j--)
+			doubleddiv.data[j] = (k * b + doubledu.data[j]) /
+				doubledv.data[0];
+			k = (k * b + doubledu.data[j]) -
+				doubleddiv.data[j] * doubledv.data[0];
+			if (j == 0)
 			{
-				doubleddiv.data[j] = (k * b + doubledu.data[j]) /
-					doubledv.data[0];
-				k = (k*b + doubledu.data[j]) -
-					doubleddiv.data[j] * doubledv.data[0];
-				if (j == 0)
-				{
-					break;
-				}
+				break;
 			}
-			rem->data[0] = k;
-			for (i = 0; i < div->size; i++)
-			{
-				div->data[i] = doubleddiv.data[2 * i];
-				div->data[i] |= (doubleddiv.data[2 * i + 1]) << halfBits;
-			}
-			FreeNumber(&doubledu);
-			FreeNumber(&doubledv);
-			FreeNumber(&doubleddiv);
-			FreeNumber(&doubledrem);
-			return;
 		}
+		rem->data[0] = k;
+		for (i = 0; i < doubleddiv.size; i++) // TODO check if possible less iterations
+		{
+			div->data[i] = doubleddiv.data[2 * i];
+			div->data[i] |= (doubleddiv.data[2 * i + 1]) << halfBits;
+		}
+		FreeNumber(&doubledu);
+		FreeNumber(&doubledv);
+		FreeNumber(&doubleddiv);
+		FreeNumber(&doubledrem);
+		return;
 	}
 
 
