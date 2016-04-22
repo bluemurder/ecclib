@@ -112,12 +112,13 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b);
 //! Left shift of multiple precision number, with specified number of shifts
 void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts);
 
-//! Long division algorithm [1], computing the quotient of a/b with the 
-//! corresponding remainder. 
-//! \param div The quotient
-//! \param rem The remainder
-//! \param u The dividend
-//! \param v The divisor
+//! Long division algorithm [1], computing the quotient of u/v with the 
+//! corresponding remainder. Note: operands and results must be already 
+//! allocated by the caller, with the following sizes, and m1 >= n1.
+//! \param div The quotient, of chunk size = m1
+//! \param rem The remainder, with chunk size = n1
+//! \param u The dividend, of chunk size = m1
+//! \param v The divisor, of chunk size = n1
 void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v);
 
 //! Short division algorithm inspired by an implementation of B.S. Kaliski Jr.

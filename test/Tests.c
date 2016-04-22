@@ -651,10 +651,11 @@ unsigned int testLongDiv()
 	mpnumber a,b,div,rem;
 	InitNumberByString(&a, "aff", 16);
 	InitNumberByString(&b, "f", 8);
-	InitNumberByString(&div, "0", 8);
+	InitNumberByString(&div, "0", 16);
 	InitNumberByString(&rem, "0", 8);
 	LongDivision(&div, &rem, &a, &b);
-	retval = retval && (div.data[0] == 0xbb) && (rem.data[0] == 0);
+	retval = retval && (div.data[1] == 0x00) && (div.data[0] == 0xbb) && 
+		(rem.data[0] == 0xa);
 
 	//a[1] = 0x82;
 	//a[0] = 0x4f;

@@ -198,15 +198,11 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 	chunk highHalfMask = 0xffff0000;
 	unsigned int halfBits = 16;
 #endif
-	// Note that div and rem must be previously allocated. Given m the size in 
-	// chunks of u, and n the size in chunks of v, and m >= n, div and rem must
-	// be of size equal to m.
-
 	// To allow the computation of word-by-word operations, the operands will
 	// be stored into multiprecision numbers with a double chunk size; every 
 	// chunk will contain a half chunk of the original operand.
 
-	// Evaluation of number dimensions
+	// n1 is the number of not null chunks of v
 	unsigned int i, j, m1, n1;
 	for (i = v->size - 1;; i--)
 	{
@@ -215,9 +211,9 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now n1 is the number of not null chunks of v
 	n1 = i + 1;
 
+	// m1 is the number of not null chunks of u
 	for (i = u->size - 1;; i--)
 	{
 		if (i == 0 || u->data[i] != 0)
@@ -225,49 +221,55 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now m1 is the number of not null chunks of u
 	m1 = i + 1;
-
-	// Check constraints, return if invalid
-	if (m1 < n1 || n1 == 0)
-	{
-		return;
-	}
 
 	// Allocation of space for all the halfwords
 	mpnumber doubledu, doubledv, doubleddiv, doubledrem;
-	InitNumber(&doubledu, 2 * m1);
-	InitNumber(&doubledv, 2 * n1);
-	InitNumber(&doubleddiv, 2 * div->size); // TODO check if correct dimension
-	InitNumber(&doubledrem, 2 * rem->size); // TODO check if correct dimension
+	unsigned int doubledusize, doubledvsize;
+	doubledusize = m1 << 1;
+	doubledvsize = n1 << 1;
+	InitNumber(&doubledu, doubledusize);
+	InitNumber(&doubledv, doubledvsize);
+	InitNumber(&doubleddiv, doubledusize);
+	InitNumber(&doubledrem, doubledvsize);
 
-	// Reset result bits
-	for (i = 0; i < div->size; i++)
-	{
-		doubleddiv.data[i] = 0;
-		doubleddiv.data[i + 1] = 0;
-	}
+	// Reset results memory (div->size >= rem->size)
 	for (i = 0; i < rem->size; i++)
 	{
+		rem->data[i] = 0;
+		div->data[i] = 0;
+	}
+	for (; i < div->size; i++)
+	{
+		div->data[i] = 0;
+	}
+
+	// Reset temporary results memory (doubledusize >= doubledvsize)
+	for (i = 0; i < doubledvsize; i++)
+	{
 		doubledrem.data[i] = 0;
-		doubledrem.data[i + 1] = 0;
+		doubleddiv.data[i] = 0;
+	}
+	for (; i < doubledusize; i++)
+	{
+		doubleddiv.data[i] = 0;
 	}
 
 	// Copy operands on doubled size buffers
 	for (i = 0; i < n1; i++)
 	{
-		doubledu.data[i<<1] = u->data[i] & lowHalfMask;
-		doubledu.data[(i<<1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
-		doubledv.data[i<<1] = v->data[i] & lowHalfMask;
-		doubledv.data[(i<<1) + 1] = (v->data[i] & highHalfMask) >> halfBits;
+		doubledv.data[i << 1] = v->data[i] & lowHalfMask;
+		doubledv.data[(i << 1) + 1] = (v->data[i] & highHalfMask) >> halfBits;
+		doubledu.data[i << 1] = u->data[i] & lowHalfMask;
+		doubledu.data[(i << 1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
 	}
 	for (; i < m1; i++)
 	{
-		doubledu.data[i<<1] = u->data[i] & lowHalfMask;
-		doubledu.data[(i<<1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
+		doubledu.data[i << 1] = u->data[i] & lowHalfMask;
+		doubledu.data[(i << 1) + 1] = (u->data[i] & highHalfMask) >> halfBits;
 	}
 
-	// Evaluation of doubled arrays dimension
+	// n is the number of not null chunks of doubledv
 	unsigned int m, n;
 	for (i = doubledv.size - 1;; i--)
 	{
@@ -276,9 +278,9 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now n is the number of not null chunks of doubledv
 	n = i + 1;
 
+	// m is the number of not null chunks of doubledu
 	for (i = doubledu.size - 1;; i--)
 	{
 		if (i == 0 || doubledu.data[i] != 0)
@@ -286,7 +288,6 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			break;
 		}
 	}
-	// Now m is the number of not null chunks of doubledu
 	m = i + 1;
 
 	// Take care of the case of a single-digit divisor here.
@@ -305,10 +306,16 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 			}
 		}
 		rem->data[0] = k;
-		for (i = 0; i < doubleddiv.size; i++) // TODO check if possible less iterations
+		for (i = 0; i < doubleddiv.size; i++)
 		{
-			div->data[i] = doubleddiv.data[2 * i];
-			div->data[i] |= (doubleddiv.data[2 * i + 1]) << halfBits;
+			if (i & 1) // odd i
+			{
+				div->data[(i-1)>>1] |= (doubleddiv.data[i]) << halfBits;
+			}
+			else  // even i
+			{
+				div->data[i>>1] = doubleddiv.data[i];
+			}
 		}
 		FreeNumber(&doubledu);
 		FreeNumber(&doubledv);
