@@ -310,11 +310,11 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 		{
 			if (i & 1) // odd i
 			{
-				div->data[(i-1)>>1] |= (doubleddiv.data[i]) << halfBits;
+				div->data[(i - 1) >> 1] |= (doubleddiv.data[i]) << halfBits;
 			}
 			else  // even i
 			{
-				div->data[i>>1] = doubleddiv.data[i];
+				div->data[i >> 1] = doubleddiv.data[i];
 			}
 		}
 		FreeNumber(&doubledu);
@@ -728,68 +728,36 @@ void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b)
 void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts)
 {
 	// Caller must assure that res is properly allocated
-	// Shift cycle: i is the destination word, j is the source word
-	unsigned int i = res->size - 1;
-	unsigned int j = i - (shifts / ARCHITECTURE_BITS);
-	unsigned int wordShifts = shifts % ARCHITECTURE_BITS;
-	// If positions to shift is multiple of word length, no shift required,
-	// only word replacing
-	if (wordShifts == 0)
+	// i is the chunk index for source mpnumber, j for result
+	unsigned int i = 0;
+	unsigned int j = shifts / ARCHITECTURE_BITS;
+	unsigned int chunkshifts = shifts % ARCHITECTURE_BITS;
+	// Reset all destination bits
+	for (; i < res->size; i++)
 	{
-		for (;; i--, j--)
+		res->data[i] = 0;
+	}
+	// If shift multiple of chunk size, only replace chunks
+	if (chunkshifts == 0)
+	{
+		for (i = 0; (i < a->size) && (j < res->size); i++, j++)
 		{
-			res->data[i] = a->data[j];
-			if (j == 0)
-			{
-				break;
-			}
+			res->data[j] = a->data[i];
 		}
-		// Filling least significant bits with zeros
-		for (;; i--)
+		return;
+	}
+	// Else, shift chunks
+	unsigned int rightshifts = ARCHITECTURE_BITS - chunkshifts;
+	for (i = 0; (i < a->size) && (j < res->size); i++, j++)
+	{
+		res->data[j] = a->data[i] << chunkshifts;
+		if (i > 0)
 		{
-			res->data[i] = 0;
-			if (i == 0)
-			{
-				break;
-			}
+			res->data[j] |= a->data[i - 1] >> rightshifts;
 		}
 	}
-	else
+	if (((i - 1) < a->size) && (j < res->size))
 	{
-		unsigned int rightShifts = ARCHITECTURE_BITS - wordShifts;
-		// First iteration
-		// Saving exceeding bits from source register
-		chunk exceeds = a->data[j] >> rightShifts;
-		// Shift source word and save in destination word
-		res->data[i] = a->data[j] << wordShifts;
-		if (j == 0)
-		{
-			return;
-		}
-		i--;
-		j--;
-		// Loop for every source register
-		for (;; i--, j--)
-		{
-			// Saving exceeding bits from source register
-			exceeds = a->data[j] >> rightShifts;
-			// Shift source register and save in dest. register
-			res->data[i] = a->data[j] << wordShifts;
-			// Xoring previous destination register with exceeding bits
-			res->data[i + 1] ^= exceeds;
-			if (j == 0)
-			{
-				break;
-			}
-		}
-		// Filling least significant words with zeros
-		for (;; i--)
-		{
-			res->data[i] = 0;
-			if (i == 0)
-			{
-				break;
-			}
-		}
+		res->data[j] |= a->data[i - 1] >> rightshifts;
 	}
 }

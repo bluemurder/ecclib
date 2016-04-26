@@ -648,20 +648,23 @@ unsigned int testLongDiv()
 	unsigned int retval = 1;
 	wprintf(L"Long division test...");
 
-	mpnumber a,b,div,rem;
+	mpnumber a, b, div, rem;
 	InitNumberByString(&a, "aff", 16);
 	InitNumberByString(&b, "f", 8);
 	InitNumberByString(&div, "0", 16);
 	InitNumberByString(&rem, "0", 8);
 	LongDivision(&div, &rem, &a, &b);
-	retval = retval && (div.data[1] == 0x00) && (div.data[0] == 0xbb) && 
+#if ARCHITECTURE_BITS == 8
+	retval = retval && (div.data[1] == 0x00) && (div.data[0] == 0xbb) &&
 		(rem.data[0] == 0xa);
+#elif ARCHITECTURE_BITS == 16
+	retval = retval && (div.data[0] == 0xbb) && (rem.data[0] == 0xa);
+#elif ARCHITECTURE_BITS == 64
+	retval = retval && (div.data[0] == 0xbb) && (rem.data[0] == 0xa);
+#else
+	retval = retval && (div.data[0] == 0xbb) && (rem.data[0] == 0xa);
+#endif
 
-	//a[1] = 0x82;
-	//a[0] = 0x4f;
-	//b = 0xcc;
-	//ChunksDivisionSingleDivisor(&res, a, b);
-	//retval = retval && (res == 0xa3);
 
 	if (retval)
 	{
