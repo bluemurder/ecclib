@@ -109,7 +109,8 @@ unsigned int MPEquals(mpnumber * a, mpnumber * b);
 //! algorithm 2.10 [2]
 void MPIntegerMul(mpnumber * mul, mpnumber * a, mpnumber * b);
 
-//! Left shift of multiple precision number, with specified number of shifts
+//! Left shift of multiple precision number, with specified number of shifts. 
+//! Caller must assure the correct size of the result is already allocated. 
 void MPLeftShift(mpnumber * res, mpnumber * a, unsigned int shifts);
 
 //! Long division algorithm [1], computing the quotient of u/v with the 

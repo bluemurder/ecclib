@@ -324,14 +324,13 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 		return;
 	}
 
-
-
 	// D1. Normalize
 
 	// Given a base b, the number u is represented as (u_{n-1},...,u_1,u_0)b. 
 	// Normalization factor d must satisfy u_{n-1} >= floor(b/2)
 	mpnumber normalizedu;
-	InitNumber(&normalizedu, m + 1);
+	InitNumber(&normalizedu, m);
+
 #if ARCHITECTURE_BITS == 8
 	chunk halfword = 0x10;
 #elif ARCHITECTURE_BITS == 16
@@ -341,6 +340,7 @@ void LongDivision(mpnumber * div, mpnumber * rem, mpnumber * u, mpnumber * v)
 #else
 	chunk halfword = 0x00010000;
 #endif
+
 	// d is a power of 2 so only the number of left shifts, or log_2(d) is 
 	// evaluated.
 	unsigned int log2d = 0;
